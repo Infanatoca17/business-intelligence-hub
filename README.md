@@ -10,9 +10,9 @@ An independent portfolio application connecting project delivery, people, resour
 
 **Deployment hotfix:** If you already installed this application, read [DEPLOYMENT_FIX.md](docs/DEPLOYMENT_FIX.md) to apply the included patch to your existing repository.
 
-> This is an independent portfolio implementation built with synthetic data. It does not contain or reproduce confidential employer code, systems, or datasets.
+> This is an independent implementation populated with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
 
-## Why this product exists
+## Why this product exists?
 
 Program teams often review delivery, staffing, finance, and risk in separate files. This demo shows how a consistent relational model and a connected interface can support faster, more informed conversations. A reviewer can filter a program, spot a delivery gap, and open the related response plan without changing tools.
 
@@ -119,4 +119,4 @@ The included workflow validates pushes and pull requests, then deploys successfu
 
 ## Dependencies and licensing
 
-Exact dependency versions are recorded in `package-lock.json`. Public geographic data and third-party software notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). No open-source license has been selected for the newly authored application; choose one before inviting reuse if desired.
+Exact dependency versions are recorded in `package-lock.json`. Public geographic data and third-party software notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
