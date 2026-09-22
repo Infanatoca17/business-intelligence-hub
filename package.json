@@ -1,0 +1,44 @@
+{
+  "name": "atlas-program-intelligence-hub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.14.0 <23 || >=24 <25"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "data:generate": "node scripts/generate-data.mjs",
+    "test": "node --test tests/data.test.mjs && vitest run",
+    "test:data": "node --test tests/data.test.mjs",
+    "check": "tsc --noEmit",
+    "build": "npm run test && npm run check && vite build && node scripts/audit-build.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "preview:ui": "npm run dev",
+    "preview:build": "npm run build",
+    "preview:verify": "npm run test",
+    "test:ui": "playwright test",
+    "release:check": "npm run build && npm run test:ui"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "d3-geo": "3.1.1",
+    "write-excel-file": "4.1.1",
+    "topojson-client": "3.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/d3-geo": "^3.1.0",
+    "@types/topojson-client": "^3.1.0",
+    "@playwright/test": "1.63.0",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "jsdom": "26.1.0",
+    "vitest": "5.0.1",
+    "typescript": "~5.8.3",
+    "vite": "8.3.0",
+    "world-atlas": "2.0.2"
+  }
+}
