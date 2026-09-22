@@ -15,10 +15,11 @@ import { money } from "../src/charts";
 import { createWorkbookSheets } from "../src/exports";
 import writeExcelFile from "write-excel-file/node";
 import { unzipSync, strFromU8 } from "fflate";
+import { basePath } from "../deployment-base.mjs";
 
 // jsdom checks DOM behavior, not browser layout or native dialog focus trapping.
 beforeEach(() => {
-  window.history.replaceState(null, "", "/program-intelligence-hub/");
+  window.history.replaceState(null, "", basePath);
   HTMLDialogElement.prototype.showModal = function () {
     this.setAttribute("open", "");
   };
@@ -37,6 +38,71 @@ const navigate = (view: string) =>
       exact: true,
     }),
   );
+
+test.each([
+  [false, "cancel"],
+  [false, "button"],
+  [false, "backdrop"],
+  [true, "cancel"],
+  [true, "button"],
+  [true, "backdrop"],
+] as const)(
+  "Modal restores its opener and scroll state (StrictMode=%s, close=%s)",
+  (strict, action) => {
+    // Simulate focus entering the dialog, but deliberately do not simulate
+    // native restoration: the app must restore it during connected cleanup.
+    const connectedOnClose: boolean[] = [];
+    vi.spyOn(HTMLDialogElement.prototype, "showModal").mockImplementation(
+      function () {
+        this.setAttribute("open", "");
+        this.querySelector<HTMLButtonElement>("button")?.focus();
+      },
+    );
+    vi.spyOn(HTMLDialogElement.prototype, "close").mockImplementation(
+      function () {
+        connectedOnClose.push(this.isConnected);
+        this.removeAttribute("open");
+      },
+    );
+    document.body.style.overflow = "scroll";
+    render(
+      strict ? (
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      ) : (
+        <App />
+      ),
+    );
+    const opener = screen.getByRole("button", {
+      name: "About this hub",
+      exact: true,
+    });
+    opener.focus();
+    fireEvent.click(opener);
+    const dialog = screen.getByRole("dialog", { name: "About this hub" });
+    const closeButton = within(dialog).getByRole("button", {
+      name: "Close About this hub",
+    });
+    expect(document.activeElement).toBe(closeButton);
+    expect(document.body.style.overflow).toBe("hidden");
+
+    if (action === "cancel")
+      fireEvent(dialog, new Event("cancel", { cancelable: true }));
+    else if (action === "button") fireEvent.click(closeButton);
+    else fireEvent.click(dialog);
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(
+      document.activeElement === opener,
+      "Focus must return to the opener",
+    ).toBe(true);
+    expect(connectedOnClose.length).toBeGreaterThan(0);
+    expect(connectedOnClose.every(Boolean)).toBe(true);
+    expect(document.body.style.overflow).toBe("scroll");
+    document.body.style.overflow = "";
+  },
+);
 
 test("Eight views render meaningful data with no missing-data text", () => {
   const app = render(<App />);

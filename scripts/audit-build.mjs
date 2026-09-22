@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import assert from "node:assert/strict";
-const base = "/program-intelligence-hub/";
+import { basePath as base } from "../deployment-base.mjs";
 const root = new URL("../dist/", import.meta.url);
 const html = readFileSync(new URL("index.html", root), "utf8");
 assert.ok(

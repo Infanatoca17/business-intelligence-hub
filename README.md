@@ -6,7 +6,9 @@ An independent portfolio application connecting project delivery, people, resour
 
 **Portfolio owner:** [Ivan Morales · Infanatoca17](https://github.com/Infanatoca17)
 
-**Intended live demo after publication:** https://infanatoca17.github.io/program-intelligence-hub/
+**Intended live demo after publication:** https://infanatoca17.github.io/business-intelligence-hub/
+
+**Deployment hotfix:** If you already installed this application, read [DEPLOYMENT_FIX.md](docs/DEPLOYMENT_FIX.md) to apply the included patch to your existing repository.
 
 > This is an independent portfolio implementation built with synthetic data. It does not contain or reproduce confidential employer code, systems, or datasets.
 
@@ -35,7 +37,7 @@ npm.cmd run build
 npm.cmd run preview
 ```
 
-Open http://127.0.0.1:4173/program-intelligence-hub/ and keep the terminal running. Stop with **Ctrl+C**.
+Open http://127.0.0.1:4173/business-intelligence-hub/ and keep the terminal running. Stop with **Ctrl+C**. Your local folder can still be named `program-intelligence-hub`; the folder name does not control the public URL.
 
 For editing, run `npm.cmd run dev` and open the address shown by the terminal. The familiar `preview:ui`, `preview:build`, and `preview:verify` commands are aliases for development, build, and tests in this edition.
 
@@ -111,7 +113,7 @@ They test the production app at its actual GitHub Pages subpath. See [VALIDATION
 
 ## Publishing
 
-The repository name must be **program-intelligence-hub** unless you also change `base` in `vite.config.ts`.
+The repository in the reported GitHub Actions run is **business-intelligence-hub**. The shared `basePath` in `deployment-base.mjs` is therefore `/business-intelligence-hub/`. Vite, Playwright, component tests, and the output audit all use that one setting. If you rename the repository, update it there.
 
 The included workflow validates pushes and pull requests, then deploys successful `main` builds to GitHub Pages. Set **Settings → Pages → Source → GitHub Actions**. Publication happens in your personal repository after you push; the delivered ZIP itself has not been published.
 

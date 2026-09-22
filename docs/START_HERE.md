@@ -1,6 +1,8 @@
 # Start here — Atlas Impact Network v1.0.0
 
-These instructions use your personal Windows computer, **Command Prompt**, GitHub account **Infanatoca17**, and local pushes. The target repository is `Infanatoca17/program-intelligence-hub`.
+These instructions use your personal Windows computer, **Command Prompt**, GitHub account **Infanatoca17**, and local pushes. The target repository is `Infanatoca17/business-intelligence-hub`, matching your reported Actions run. The local source folder may retain its original `program-intelligence-hub` name.
+
+If your repository already exists, use [DEPLOYMENT_FIX.md](DEPLOYMENT_FIX.md). Do not create or initialize it again.
 
 ## 1. Extract the new application
 
@@ -32,7 +34,7 @@ npm.cmd run build
 npm.cmd run preview
 ```
 
-Open **http://127.0.0.1:4173/program-intelligence-hub/**. If port 4173 is occupied by the previous preview, stop that preview using Ctrl+C, or follow the actual address printed by Vite.
+Open **http://127.0.0.1:4173/business-intelligence-hub/**. If port 4173 is occupied by the previous preview, stop that preview using Ctrl+C, or follow the actual address printed by Vite.
 
 Check the following before publication:
 
@@ -60,13 +62,13 @@ For development:
 npm.cmd run dev
 ```
 
-Use the full address shown, including `/program-intelligence-hub/`.
+Use the full address shown, including `/business-intelligence-hub/`.
 
 ## 4. Create the personal GitHub repository
 
 In your personal browser session, open https://github.com/new and check that the owner is **Infanatoca17**.
 
-- Repository name: `program-intelligence-hub`
+- Repository name: `business-intelligence-hub`
 - Description: `Atlas Impact Network — independent program intelligence demo with synthetic data.`
 - Visibility: Public, for the intended public portfolio.
 - Leave automatic README, `.gitignore`, and license initialization unchecked; the package already contains the first two.
@@ -99,7 +101,7 @@ Review the list. It should contain the Atlas source, generated synthetic JSON, d
 
 ```bat
 git commit -m "Add Atlas Impact Network portfolio demo"
-git remote add origin https://Infanatoca17@github.com/Infanatoca17/program-intelligence-hub.git
+git remote add origin https://Infanatoca17@github.com/Infanatoca17/business-intelligence-hub.git
 git remote -v
 git push -u origin main
 ```
@@ -116,7 +118,7 @@ Open **Actions → Validate and publish Atlas**. If the initial run failed becau
 
 The intended public URL is:
 
-https://infanatoca17.github.io/program-intelligence-hub/
+https://infanatoca17.github.io/business-intelligence-hub/
 
 Verify it in a signed-out browser window. Check a project link after reloading, all charts, and exports. These are query-string links, so they do not require a server-side router or 404 redirect workaround.
 
@@ -136,9 +138,9 @@ Make and validate the change. Commit and push the branch, then review it through
 |---|---|
 | `package.json` not found | You are probably one directory above or below the application root. |
 | Node engine warning | Select supported Node 22.14+ or 24, reopen the terminal, and check `where node`. |
-| Page opens at the wrong address | Use the complete `/program-intelligence-hub/` path shown by the server. |
+| Page opens at the wrong address | Use the complete `/business-intelligence-hub/` path shown by the server. |
 | `git remote add` says origin exists | Run `git remote -v`; inspect the destination before changing anything. |
-| GitHub Pages assets return 404 | Check that repository name and `vite.config.ts` base match exactly. |
+| GitHub Pages assets return 404 | Check that the repository name matches `basePath` in `deployment-base.mjs`. |
 | Browser installer cannot download Chromium | This affects browser checks. Check access to the official Playwright download service; keep the checks enabled. |
 
 > This is an independent portfolio implementation built with synthetic data. It does not contain or reproduce confidential employer code, systems, or datasets.

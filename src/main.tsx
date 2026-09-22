@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import bundle from "./data/atlas-bundle.json";
 import { mean, sum, portfolioMetrics } from "./metrics.mjs";
 import {
@@ -317,14 +323,20 @@ function Modal({
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current!;
-    el.showModal();
+    const opener = document.activeElement;
     const previous = document.body.style.overflow;
+    el.showModal();
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = previous;
+      // Close while the dialog is connected, before React removes its DOM.
+      // Restore focus explicitly for every close path and StrictMode replay.
       el.close();
+      document.body.style.overflow = previous;
+      if (opener instanceof HTMLElement && opener.isConnected) {
+        opener.focus({ preventScroll: true });
+      }
     };
   }, []);
   return (
