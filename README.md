@@ -2,23 +2,17 @@
 
 ## Program Intelligence Hub
 
-An independent portfolio application connecting project delivery, people, resources, funding, and risk response in one usable decision tool.
-
 **Portfolio owner:** [Ivan Morales · Infanatoca17](https://github.com/Infanatoca17)
 
-**Intended live demo after publication:** https://infanatoca17.github.io/business-intelligence-hub/
+**Live demo:** https://infanatoca17.github.io/business-intelligence-hub/
 
-**Deployment hotfix:** If you already installed this application, read [DEPLOYMENT_FIX.md](docs/DEPLOYMENT_FIX.md) to apply the included patch to your existing repository.
+> This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
 
-> This is an independent implementation populated with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
+## Why does this product exists?
 
-## Why this product exists?
+At organizations, Program and Project Managers often review data from multiple sources with different reporting methods. To assist Managers and Decision-Making Executives, I designed an integrated data hub that translates complex information into simple and actionable tools that anyone can use. This demo is bult using automated workflows, relational models and an intuitive interface to support informed conversations. 
 
-Program teams often review delivery, staffing, finance, and risk in separate files. This demo shows how a consistent relational model and a connected interface can support faster, more informed conversations. A reviewer can filter a program, spot a delivery gap, and open the related response plan without changing tools.
-
-The portfolio narrative is: **I design data products, automate reporting workflows, and translate complex organizational information into tools people can use.**
-
-## Explore it in one minute
+## Explore the Business Intelligence Hub in one minute
 
 1. Start on Overview and select **Health** in the Program filter.
 2. Select **Review delivery** to inspect projects behind schedule.
@@ -26,24 +20,7 @@ The portfolio narrative is: **I design data products, automate reporting workflo
 4. Review its deliverables, response plan, people, and financials.
 5. Export a filtered workbook, or download a chart as PNG or SVG.
 
-## Run locally on Windows
-
-Use **Command Prompt** and Node **22.14+ within major 22**, or Node **24 LTS**. Both are supported by this independent edition. Python, SharePoint, external data accounts, and API secrets are not required.
-
-```bat
-cd /d C:\Users\USER\github-portfolio\program-intelligence-hub
-npm.cmd ci
-npm.cmd run build
-npm.cmd run preview
-```
-
-Open http://127.0.0.1:4173/business-intelligence-hub/ and keep the terminal running. Stop with **Ctrl+C**. Your local folder can still be named `program-intelligence-hub`; the folder name does not control the public URL.
-
-For editing, run `npm.cmd run dev` and open the address shown by the terminal. The familiar `preview:ui`, `preview:build`, and `preview:verify` commands are aliases for development, build, and tests in this edition.
-
-Read [START_HERE.md](docs/START_HERE.md) for extraction, local Git identity, first push, and GitHub Pages instructions.
-
-## What is included
+## What is included in this Hub?
 
 | View | Working interactions |
 |---|---|
@@ -57,31 +34,16 @@ Read [START_HERE.md](docs/START_HERE.md) for extraction, local Git identity, fir
 | Project 360 | Project profile, deliverables, response plan, risks/issues, staffing, financials, funding, copyable URL |
 | Search / help | Cross-portfolio project, deliverable, person, location and risk search; demo methodology and provenance |
 
-Charts export as **PNG/SVG**. Tables and the current view export as **XLSX**, including an About sheet with the disclaimer. Empty filter results are displayed as an empty state, never fabricated records.
+Charts export as **PNG/SVG**. Tables and the current view export as **XLSX**.
 
-## Data and methods
-
-The four programs are ordered **Sustainability → Health → Governance → Education**.
-
-The deterministic generator creates:
+## Data
 
 - 48 projects (44 active, 4 planned), 288 deliverables, and 48 response plans.
 - 96 risks and 48 issues.
 - 96 unique fictional staff members and 48 financial records.
 - 24 funding opportunities and 24 fictional demonstration sites.
 
-Every business-data field has an explicit value. IDs are newly generated `ATL-*` identifiers. Contacts use the reserved `.example` namespace. Site names and business scenarios are fictional; country names and land outlines are public geographic context. All records use a fixed **22 September 2026** snapshot so values are reproducible.
-
-The source workbook, reporting bundles, people, donor lists, images, screenshots, compiled webpart files, and connectors from the reference project are not distributed. This is a new implementation of the selected product workflows, **not a SharePoint package or a claim of full visual/behavioral parity**. The demonstration exposure metric is explicitly documented; it is not claimed to be an employer's approved methodology.
-
-See [METHODOLOGY.md](docs/METHODOLOGY.md), [DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md), and [RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
-
-Regenerate the dataset and verify it:
-
-```bat
-npm.cmd run data:generate
-npm.cmd run build
-```
+For more information, please see [METHODOLOGY.md](docs/METHODOLOGY.md), [DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md), and [RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 
 ## Architecture
 
@@ -97,25 +59,6 @@ flowchart TB
 ```
 
 The application loads its data, geography, styling, and logo from its own compiled assets. There are no runtime data services, remote fonts, analytics, external images, authentication flows, or API keys. The GitHub profile link is a normal outbound link opened only by the visitor.
-
-## Validation
-
-`npm run build` runs data tests, DOM component tests, TypeScript checking, compilation, and a production-output audit.
-
-Browser checks are included separately:
-
-```bat
-npx.cmd playwright install chromium
-npm.cmd run test:ui
-```
-
-They test the production app at its actual GitHub Pages subpath. See [VALIDATION.md](docs/VALIDATION.md) for precisely what was executed for this package and the outstanding visual check.
-
-## Publishing
-
-The repository in the reported GitHub Actions run is **business-intelligence-hub**. The shared `basePath` in `deployment-base.mjs` is therefore `/business-intelligence-hub/`. Vite, Playwright, component tests, and the output audit all use that one setting. If you rename the repository, update it there.
-
-The included workflow validates pushes and pull requests, then deploys successful `main` builds to GitHub Pages. Set **Settings → Pages → Source → GitHub Actions**. Publication happens in your personal repository after you push; the delivered ZIP itself has not been published.
 
 ## Dependencies and licensing
 
