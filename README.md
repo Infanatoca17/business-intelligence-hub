@@ -10,7 +10,7 @@
 
 ## Why does this product exists?
 
-At organizations, Program and Project Managers often review data from multiple sources with different reporting methods. To assist Managers and Decision-Making Executives, I designed an integrated data hub that translates complex information into simple and actionable tools that anyone can use. This demo is bult using automated workflows, relational models and an intuitive interface to support informed conversations. 
+At organizations, Decision-Makers often review data from multiple sources with different reporting methods. To assist them, I designed an integrated data hub that translates complex information into simple and actionable tools that anyone can use. This demo is bult using automated workflows, relational models and an intuitive interface to support informed conversations. 
 
 ## Explore the Business Intelligence Hub in one minute
 
