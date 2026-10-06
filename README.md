@@ -42,7 +42,7 @@ Coworker is an AI Assistant: It connects portfolio and project reporting data, e
 | Executive Brief | Editable narrative, review gates, review reset after changes, Markdown/XLSX export |
 | Methodology | Shared delivery, exposure, financial, probability and review assumptions |
 | Project 360 | Project profile, deliverables, response plan, risks/issues, staffing, financials, funding, copyable URL |
-| Search / help | Cross-portfolio project, deliverable, person, location and risk search; demo methodology and provenance |
+| Search / help | Cross-portfolio project, deliverable, person, location and risk search; demo methodology |
 
 Charts export as **PNG**. Tables and current views export as **XLSX**. Coworker also provides **scenario CSV** and **executive Markdown** exports.
 
@@ -61,7 +61,7 @@ See [METHODOLOGY.md](docs/METHODOLOGY.md), [DATA_DICTIONARY.md](docs/DATA_DICTIO
 
 ## Run, validate and update
 
-To run locally, sse Node 22.14+ in major 22 or Node 24, and Python 3.10+.
+To run locally, use Node 22.14+ in major 22 or Node 24, and Python 3.10+.
 
 ```powershell
 npm.cmd ci
@@ -104,4 +104,4 @@ For local inference, the Python service serves the built frontend and API from l
 
 Exact frontend dependency versions are recorded in `package-lock.json`. Model weights are not included. Public geographic data and third-party software notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); model licensing belongs to the selected model's source.
 
-This product's concept, direction and acceptance belong to Ivan Morales.
+This product's concept, direction and implementation belong to Ivan Morales.
