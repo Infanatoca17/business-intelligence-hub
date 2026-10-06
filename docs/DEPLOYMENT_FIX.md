@@ -1,3 +1,5 @@
+> Historical v1.0.0 hotfix instructions. For the current Coworker update, use [UPDATE_EXISTING_REPOSITORY.md](UPDATE_EXISTING_REPOSITORY.md).
+
 # Fix the failed Pages validation
 
 This hotfix is for the reported `business-intelligence-hub` repository and the original Atlas v1.0.0 source. It corrects dialog focus restoration and the GitHub Pages asset base. It keeps all five Playwright tests enabled.
@@ -72,7 +74,7 @@ Escape called the React close handler, which unmounted the dialog. The original 
 
 The correction records the opening element before `showModal()`, uses `useLayoutEffect` cleanup to close before DOM removal, and explicitly restores that element's focus if it still exists. It also restores the previous body overflow setting. The common component handles About and Project 360.
 
-The base-path correction is separate: Vite project sites need the repository name in their asset base. The previous package used `/program-intelligence-hub/`, while the reported Actions run belongs to `business-intelligence-hub`.
+The base-path correction was separate: Vite project sites need the repository name in their asset base. The configured path was corrected to `/business-intelligence-hub/` for the reported repository.
 
 References: [React useLayoutEffect](https://react.dev/reference/react/useLayoutEffect), [Vite GitHub Pages deployment](https://vite.dev/guide/static-deploy.html#github-pages).
 

@@ -108,7 +108,7 @@ test("Search, shareable project URLs, help, and empty filters are usable", async
     .click();
   await expect(
     page.getByRole("dialog", { name: "About this hub" }),
-  ).toContainText("This is an independent portfolio implementation");
+  ).toContainText("This is a demo with dummy data");
   await page.keyboard.press("Escape");
   await page
     .getByRole("navigation")
@@ -139,7 +139,7 @@ test("Workbook and chart exports contain Atlas branding and synthetic values", a
       .length,
   ).toBe(13);
   expect(Object.values(workbook).map(strFromU8).join("")).toContain(
-    "This is an independent portfolio implementation",
+    "This is a demo with dummy data",
   );
   const svgDownload = page.waitForEvent("download");
   await page
@@ -150,7 +150,7 @@ test("Workbook and chart exports contain Atlas branding and synthetic values", a
   const svgFile = await svgDownload;
   const svg = readFileSync((await svgFile.path())!, "utf8");
   expect(svg).toContain("Synthetic demonstration data");
-  expect(svg).toContain("independent portfolio implementation");
+  expect(svg).toContain("demo with dummy data");
   const pngDownload = page.waitForEvent("download");
   await page
     .getByRole("button", {

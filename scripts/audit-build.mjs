@@ -8,8 +8,8 @@ assert.ok(
   "Production asset base is incorrect.",
 );
 assert.ok(
-  html.includes("Atlas Impact Network"),
-  "Atlas page title is missing.",
+  html.includes("<title>Atlas Business Intelligence Hub</title>"),
+  "Official product page title is missing.",
 );
 let files = 0;
 function scan(folder) {
@@ -24,6 +24,7 @@ function scan(folder) {
       );
       if (/\.(js|html|json|css|svg)$/.test(entry.name)) {
         const value = readFileSync(url, "utf8");
+        assert.ok(!/program intelligence hub|atlas-copilot-integration/i.test(value), `Retired product or branch name found in ${entry.name}`);
         assert.ok(
           !/wri\.org|sharepoint\.com|app\.asana\.com|citiesppmo|ross.center|vipper|cities4forests|no data reported/i.test(
             value,

@@ -1,43 +1,88 @@
-# Demonstration methodology
+# Demonstration methodology — Atlas Business Intelligence Hub v1.1.1
 
-All formulas below are implemented in `src/metrics.mjs` or directly calculated from filtered rows in the interface. This is an independent demonstration methodology, not a calibrated organizational risk model. The snapshot date is fixed at **2026-09-22**; changing the computer clock does not change the demo.
+The shared engines are `src/metrics.mjs` and `src/coworker-engine.mjs`. React, guided responses, scenario exports and the Python service use these same calculations. Python invokes the Node engine; it does not maintain a second set of formulas. The snapshot is fixed at **2026-09-22**, reporting period **Q3 2026**, currency **USD**.
 
-## Progress
+## Delivery and monthly evidence
 
-`Actual project progress = mean(completion percentage of the project's deliverables)`
+`Actual project progress = mean(completion percentage of the project's six deliverables)`
 
 `Expected project progress = clamp(100 × (snapshot − start) / (end − start), 0, 100)`
 
-Date differences use UTC calendar dates. Projects have strictly positive durations. The generator rounds expected progress to whole percentage points. Portfolio progress uses an equal-weight mean across all projects in scope, including planned projects unless the status filter excludes them.
+UTC calendar dates and strictly positive project durations are used. Expected project progress is rounded to whole percentage points; actual project progress to one decimal. Portfolio progress is an equal-weight mean across projects in scope, including planned projects unless filtered out.
 
-Schedule status uses a 10-percentage-point tolerance: below expected minus 10 is Behind schedule; above expected plus 10 is Ahead of plan; all other values are On track. A deliverable is Complete at 100%; otherwise it is Overdue if its due date is before the snapshot, In progress if completion is positive, or Scheduled.
+A gap below **−7 percentage points** is Behind schedule; above **+7** is Ahead of plan; both boundaries and the intervening range are On track. A deliverable is Complete at 100%; otherwise Overdue if its deadline precedes the snapshot, In progress if completion is positive, or Scheduled.
 
-## Threat exposure index
+The generator creates 12 monthly observations per project, October 2025–September 2026. Historical completion and spending interpolate deterministically from planned elapsed time and the current synthetic records. September is a partial-month observation at the snapshot date, not a forecast month-end. Current observations reconcile with current deliverables and spending. Historical completion is derived from its six saved deliverable completion values. These records are synthetic histories, not collected reports or independently estimated trajectories.
 
-`Risk/issue score = impact × likelihood × 4`
+Monthly evidence supports coverage and historical inspection. Current dashboard progress and spending use deliverables and financial records; an invalid monthly observation is quarantined rather than substituted into current KPIs.
 
-Impact and likelihood are integers from 1 to 5. Issues have likelihood 5 because the fictional event has occurred. Closed records have score 0.
+## Ordinal exposure and monetary consequences
 
-`Project exposure = mean(scores for the project's non-closed risks and issues)`
+`Threat score = impact × likelihood × 4`, except closed records have score 0.
 
-A project with no open items has exposure 0. The portfolio average is the equal-weight mean of project exposure. The index is bounded to 0–100. Bands are Minor (0–20), Moderate (>20–40), Major (>40–70), and Critical (>70–100). This is an index, not a probability of loss. The chart has a fixed 0–100 horizontal scale so filtered and unfiltered views remain comparable.
+Impact and likelihood are integers 1–5. An occurred issue uses likelihood 5. Project exposure is the mean score of non-closed threats; no open threats gives 0. Portfolio exposure is the equal-weight project mean. Bands are Minor (0–20), Moderate (>20–40), Major (>40–70), Critical (>70–100). The chart scale is fixed at 0–100.
 
-## Resources
+| Likelihood level | Synthetic risk probability |
+|---:|---:|
+| 1 | 10% |
+| 2 | 25% |
+| 3 | 45% |
+| 4 | 65% |
+| 5 | 85% |
+| Occurred issue | 100% |
 
-Budgets, expenditures, forecasts and next-year budgets are independent synthetic values in USD. Burn rate is `100 × expenditure / budget` and is 0 for an empty scope. Forecast expenditure is a projected total, not an additional expenditure amount.
+These are explicit uncalibrated scenario assumptions. Ordinal likelihood 5 is not automatically probability one for a risk. Probability one applies to an issue because the fictional event has occurred.
 
-Each staff record is a unique fictional person allocated to exactly one demonstration project. FTE sums those allocations. Weekly hours equal FTE × 40. These assumptions avoid double counting in this small demo; a real allocation model would distinguish people from assignments.
+Each threat has a generated USD consequence: `round(project budget × (0.02 + impact × 0.025))`. Its delay assumption is `impact × 6 + (threat record index modulo 5) × 3` days. Closed threats contribute zero.
 
-## Funding
+`Baseline expected consequences = sum(probability × lossUsd)`
 
-Requested amount is the sum of the displayed opportunities, including secured opportunities unless a stage filter narrows the view. Weighted pipeline is `sum(requested × probability)`, with stage weights Proposed 25%, Under review 50%, Negotiation 75%, and Secured 100%. These are illustrative scenario weights, not statistically estimated probabilities.
+Exposure and expected consequences reference the same threats but measure different things: an ordinal index vs USD. One is not converted into the other. Additive expected losses do not imply independent events, but this demo does not model dependence, overlapping consequences, contingencies or probability distributions. Its loss estimate is not an approved risk provision.
 
-## Filtering and exports
+## Financial scenarios
 
-Program, leading office and project status define a set of project IDs. Related records in every view are selected through those IDs. View-specific filters narrow the current view further, including its charts, KPIs and exported rows. The scope counter always reports the project-level global scope. Search intentionally covers the entire synthetic portfolio.
+Budgets, spending, register forecasts and next-year budgets are synthetic USD values. Register forecast is a separate supplied demonstration field. Burn rate is `100 × spent / budget`, or 0 for an empty scope.
 
-Program and office bars change the global scope. Risk/issue status and severity bars apply the corresponding local filter. Project links use query parameters and survive refresh on static hosting. Global filters and selected project are encoded in URLs; view-specific filters are not currently encoded in the URL.
+| Parameter | Range / effect |
+|---|---|
+| Funding reduction | 0–50%; available budget = approved budget × (1 − reduction) |
+| Capacity reduction | 0–50%; remaining execution cost increases by 0.30 × reduction |
+| Probability uplift | 0–100%; risk probability = min(1, baseline probability × (1 + uplift)); issue probability stays 1 |
 
-An empty filter intersection is displayed as an empty state and zero counts. It is not a missing-data record. No missing value is replaced with invented operational information.
+For a project with positive deliverable progress:
 
-> This is an independent portfolio implementation built with synthetic data. It does not contain or reproduce confidential employer code, systems, or datasets.
+`Baseline execution projection = spent / (progress / 100)`
+
+`Scenario execution = spent + max(0, baseline execution − spent) × (1 + 0.30 × capacity reduction)`
+
+`Scenario cost with risk = execution + sum(scenario probability × lossUsd)`
+
+`Project funding gap = max(0, scenario cost with risk − available budget)`
+
+Portfolio gap sums individual gaps. A surplus in one project is not transferred to another. Expected loss covers every scoped non-closed threat; the execution/gap aggregate covers only projects with positive progress. Zero-progress projects have **null / Not projected** execution, cost-with-risk and gap. The UI reports coverage (44/48 at baseline). An empty projection cohort has a sum of 0 and does not establish adequate funding.
+
+`Delay = remaining planned days × (1 / (1 − capacity reduction) − 1) + sum(scenario probability × delayDays)`
+
+Added delay is the equal-weight mean of each project's scenario delay minus baseline delay. It is an illustrative additive sensitivity, not a critical-path schedule model. Scenario changes leave the baseline ordinal exposure unchanged. The matrix uses baseline impact and likelihood.
+
+## People and funding
+
+Each of 96 fictional people is allocated to one project. FTE sums assignments; weekly hours = FTE × 40. A real staffing system would distinguish people and multiple allocations.
+
+Funding requested amount includes all scoped opportunities unless the stage filter narrows it. Weighted pipeline = sum(requested × stage probability): Proposed 25%, Under review 50%, Negotiation 75%, Secured 100%. These funding-stage weights differ from the threat likelihood scale and are also synthetic.
+
+## Quality and review
+
+The canonical bundle has no findings. The selectable defect fixture contains one duplicate observation, one orphan observation, negative spending, progress above 100%, a stale current report, a missing project owner, missing threat action and missing response owner. Four critical observations are quarantined; four warnings remain inspectable. Raw records and locators are preserved. Restoring the canonical sample replaces this deterministic fixture; it is not a general data-cleaning tool.
+
+Review requires a nonempty scope and narrative, zero critical findings, valid current observations for every scoped project, and acknowledgement of any warnings. Orphan/global findings remain visible under filters. Scope/sample/scenario/narrative changes reset review. Review is session-only and does not establish durable authorization or an audit trail.
+
+## Scope, evidence and exports
+
+Program, office, project status and optional project ID select a set of project IDs. Related datasets and Coworker use that same set. View-specific filters narrow their table/chart/export further. Search covers the entire synthetic portfolio. Global filters, project scope and sample are encoded in URLs; table/matrix filters and review are not.
+
+Empty scopes show zero counts and explicit empty states. Null execution projections export as empty cells, not zeros. Scenario XLSX/CSV rows include the snapshot, currency, sample, scenario percentages and dummy-data notice. Numeric XLSX/CSV cells preserve calculation precision; UI and Markdown round money to dollars, progress/exposure to one decimal. Compact dashboard formatting can differ from Coworker formatting without changing the underlying value.
+
+Evidence comprises generated policy documents and source records plus `CALC-PORTFOLIO` and `CALC-SCENARIO`, calculated from the current scope. Guided responses select sources by reporting intent. LM Studio receives the selected evidence and verified calculations, rather than an unrestricted data connection. It drafts JSON-structured narrative/actions and existing source IDs. Schema/citation checks cannot prove each sentence; human review is still required. Invalid/unavailable model output falls back to clearly labelled guided mode.
+
+> This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.

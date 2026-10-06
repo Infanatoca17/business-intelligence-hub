@@ -1,6 +1,6 @@
 {
-  "name": "atlas-program-intelligence-hub",
-  "version": "1.0.0",
+  "name": "atlas-business-intelligence-hub",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "data:generate": "node scripts/generate-data.mjs",
-    "test": "node --test tests/data.test.mjs && vitest run",
-    "test:data": "node --test tests/data.test.mjs",
+    "test": "node --test tests/data.test.mjs tests/coworker.test.mjs && vitest run",
+    "test:data": "node --test tests/data.test.mjs tests/coworker.test.mjs",
     "check": "tsc --noEmit",
     "build": "npm run test && npm run check && vite build && node scripts/audit-build.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
@@ -18,7 +18,9 @@
     "preview:build": "npm run build",
     "preview:verify": "npm run test",
     "test:ui": "playwright test",
-    "release:check": "npm run build && npm run test:ui"
+    "release:check": "npm run build && npm run test:python && npm run test:ui",
+    "test:python": "python -m unittest discover -s tests -p test_*.py -v",
+    "coworker": "python -m atlas_coworker serve"
   },
   "dependencies": {
     "react": "19.3.0",

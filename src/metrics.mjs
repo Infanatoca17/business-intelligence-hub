@@ -41,9 +41,9 @@ export const projectProgress = (projectId, deliverables) =>
     ),
   );
 export const scheduleStatus = (actual, expected) =>
-  actual + 10 < expected
+  actual + 7 < expected
     ? "Behind schedule"
-    : actual > expected + 10
+    : actual > expected + 7
       ? "Ahead of plan"
       : "On track";
 export const portfolioMetrics = (projects, bundle) => {
@@ -60,6 +60,7 @@ export const portfolioMetrics = (projects, bundle) => {
     actual: round(mean(projects.map((p) => p.progress))),
     expected: round(mean(projects.map((p) => p.expected))),
     exposure: round(mean(projects.map((p) => p.exposure))),
+    expectedLoss: risks.reduce((total, r) => total + (r.status === "Closed" ? 0 : r.probability * r.lossUsd), 0),
     budget: sum(financials, "budget"),
     spent: sum(financials, "spent"),
     forecast: sum(financials, "forecast"),
