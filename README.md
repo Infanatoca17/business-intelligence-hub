@@ -1,16 +1,20 @@
-# Atlas Impact Network
+# Atlas Business Intelligence Hub
 
-## Program Intelligence Hub
+**Fictional organization:** Atlas Impact Network
+
+**Assistant:** Coworker · **Version:** 1.1.1
 
 **Portfolio owner:** [Ivan Morales · Infanatoca17](https://github.com/Infanatoca17)
 
-**Live demo:** https://infanatoca17.github.io/business-intelligence-hub/
+**Live demo:** [infanatoca17.github.io/business-intelligence-hub](https://infanatoca17.github.io/business-intelligence-hub/)
 
 > This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
 
-## Why does this product exists?
+## Why does this product exist?
 
-At organizations, Decision-Makers often review data from multiple sources with different reporting methods. To assist them, I designed an integrated data hub that translates complex information into simple and actionable tools that anyone can use. This demo is bult using automated workflows, relational models and an intuitive interface to support informed conversations. 
+At organizations, decision-makers often review data from multiple sources with different reporting methods. To assist them, I designed an integrated data hub that translates complex information into simple and actionable tools that anyone can use. This demo is built using automated workflows, relational models and an intuitive interface to support informed conversations.
+
+Coworker connects portfolio reporting, evidence review and financial scenarios in this same application. The public demo uses verified calculations and guided templates. An optional Python service lets a locally installed LM Studio model draft narratives from those verified facts and evidence. Human review remains part of the workflow.
 
 ## Explore the Business Intelligence Hub in one minute
 
@@ -18,48 +22,86 @@ At organizations, Decision-Makers often review data from multiple sources with d
 2. Select **Review delivery** to inspect projects behind schedule.
 3. Open a project from a table or chart to explore Project 360.
 4. Review its deliverables, response plan, people, and financials.
-5. Export a filtered workbook, or download a chart as PNG or SVG.
+5. Open **Coworker**, ask **Draft the quarterly brief**, and inspect its evidence.
+6. Export a filtered workbook, download a chart as PNG/SVG, or review an Executive Brief.
 
 ## What is included in this Hub?
 
 | View | Working interactions |
 |---|---|
-| Overview | Calculated KPIs, rotatable geographic globe, clickable project exposure chart, program filters, delivery attention summary |
-| Projects | Expected vs actual progress, schedule and site filters, sortable/paginated directory, Project 360 |
+| Overview | Calculated KPIs, exposure and financial consequences, rotatable geographic globe, clickable exposure chart, global filters, delivery attention summary |
+| Projects | Deliverable-derived actual vs expected progress, schedule/site filters, sortable/paginated directory, Project 360 |
 | Deliverables | Completion and deadline KPIs, clickable status/program charts, filtered export |
 | Staff | Unique fictional people, FTE and weekly-hours totals, office/program charts |
-| Financials | Budgets, expenditure, forecasts, burn rate, next-year amounts in the register |
+| Financials | Budgets, expenditure, forecasts, burn rate, baseline expected consequences, next-year register amounts |
 | Funding Pipeline | Opportunity stages, requested and weighted amounts, secured total, donor register |
-| Risks / Issues | Status, severity, category and impacted-party filters, response owners, overdue actions |
+| Risks / Issues | Status, severity, category and impacted-party filters, response owners, overdue actions, explicit probabilities and USD consequences |
+| Coworker | Guided reporting, optional LM Studio narratives, verified fact cards, inspectable source citations |
+| Data Quality | Canonical/defect samples, critical/warning findings, raw evidence, quarantine and observation coverage |
+| Risk Scenarios | Funding/capacity/probability controls, baseline reconciliation, likelihood-impact matrix, project consequences, CSV/XLSX |
+| Executive Brief | Editable narrative, review gates, review reset after changes, Markdown/XLSX export |
+| Methodology | Shared delivery, exposure, financial, probability and review assumptions |
 | Project 360 | Project profile, deliverables, response plan, risks/issues, staffing, financials, funding, copyable URL |
 | Search / help | Cross-portfolio project, deliverable, person, location and risk search; demo methodology and provenance |
 
-Charts export as **PNG/SVG**. Tables and the current view export as **XLSX**.
+Charts export as **PNG/SVG**. Tables and current views export as **XLSX**. Coworker also provides **scenario CSV** and **executive Markdown** exports. Review is recorded only in the current browser session.
 
-## Data
+## Data and common methodology
 
 - 48 projects (44 active, 4 planned), 288 deliverables, and 48 response plans.
-- 96 risks and 48 issues.
+- 96 risks and 48 issues, with synthetic probability, USD loss and delay assumptions.
 - 96 unique fictional staff members and 48 financial records.
 - 24 funding opportunities and 24 fictional demonstration sites.
+- 576 monthly observations: 12 per project, October 2025–September 2026.
+- 6 synthetic methodology/evidence documents, plus inspectable project and reporting records.
 
-For more information, please see [METHODOLOGY.md](docs/METHODOLOGY.md), [DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md), and [RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
+Current progress is the mean completion of each project's six deliverables. **On track** uses a **±7 percentage-point** tolerance. The ordinal exposure index and expected financial loss use the same non-closed threats but retain separate units. Likelihood levels 1–5 map to **10%, 25%, 45%, 65%, 85%** synthetic probabilities; occurred issues use **100%**. These probabilities are explicit demonstration assumptions, not calibrated estimates.
+
+See [METHODOLOGY.md](docs/METHODOLOGY.md), [DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md), and [RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
+
+## Run, validate and update
+
+Use Node 22.14+ in major 22 or Node 24, and Python 3.10+ for the optional local service.
+
+```powershell
+npm.cmd ci
+npm.cmd run build
+npm.cmd run test:python
+npx.cmd playwright install chromium
+npm.cmd run test:ui
+npm.cmd run preview
+```
+
+Preview: [127.0.0.1:4173/business-intelligence-hub](http://127.0.0.1:4173/business-intelligence-hub/). The guided demo does not require Python or a model.
+
+- Existing repository/branch: [UPDATE_EXISTING_REPOSITORY.md](docs/UPDATE_EXISTING_REPOSITORY.md).
+- Local AI installation, model choice, exact model ID and real inference check: [LM_STUDIO_SETUP.md](docs/LM_STUDIO_SETUP.md).
+- Manual checks and reference figures: [WALKTHROUGH.md](docs/WALKTHROUGH.md).
+- Executed tests and practical limitations: [VALIDATION.md](docs/VALIDATION.md).
+
+There is one workflow, `.github/workflows/pages.yml`. It validates the integration branch, pull requests and main. It publishes the frontend to GitHub Pages only after main passes validation. Python and LM Studio run on your computer, not on GitHub Pages.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-    G["Deterministic scenario generator"] --> D["Typed relational demo bundle"]
-    D --> M["Shared metric functions"]
-    D --> U["React interface and Project 360"]
-    M --> U
-    U --> E["Labelled chart and workbook exports"]
-    V["Data, component and browser checks"] --> B["Vite static build"]
-    B --> P["GitHub Pages"]
+    G["Deterministic generator"] --> D["Atlas data and evidence"]
+    D --> M["Shared calculation engine"]
+    M --> U["React hub and Coworker"]
+    U --> E["Charts, workbooks and briefs"]
+    M --> S["Local Python service"]
+    S <--> L["LM Studio local model"]
+    S --> U
+    V["Data, React, Python and browser checks"] --> B["Vite static build"]
+    B --> P["GitHub Pages guided demo"]
 ```
 
-The application loads its data, geography, styling, and logo from its own compiled assets. There are no runtime data services, remote fonts, analytics, external images, authentication flows, or API keys. The GitHub profile link is a normal outbound link opened only by the visitor.
+The public application loads its data, geography, styling and logo from compiled assets. It has no operational data connectors, remote fonts, analytics, external images or sign-in. It makes a same-origin capability request to detect the optional local service; on Pages, local AI is unavailable and guided mode remains usable. The GitHub profile link opens only when selected by a visitor.
 
-## Dependencies and licensing
+For local inference, the Python service serves the built frontend and API from localhost. It calls LM Studio's localhost endpoint and keeps optional LM Studio authentication in the server environment. The model can draft text; it cannot replace calculated figures, repair records, send messages or approve reports. Structured JSON and citation checks do not establish narrative accuracy.
 
-Exact dependency versions are recorded in `package-lock.json`. Public geographic data and third-party software notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+## Dependencies, attribution and licensing
+
+Exact frontend dependency versions are recorded in `package-lock.json`. The Python service uses its standard library and the existing Node calculation engine. Model weights are not included. Public geographic data and third-party software notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); model licensing belongs to the selected model's source.
+
+Portfolio concept, direction and acceptance belong to Ivan Morales. This integration's implementation and documentation were prepared with AI assistance and are supplied with reproducible checks for further review.

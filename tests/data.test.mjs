@@ -180,6 +180,7 @@ test("Program subtotals reconcile with the complete portfolio", () => {
     actual: 0,
     expected: 0,
     exposure: 0,
+    expectedLoss: 0,
     budget: 0,
     spent: 0,
     forecast: 0,

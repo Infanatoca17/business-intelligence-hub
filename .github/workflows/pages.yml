@@ -1,7 +1,7 @@
 name: Validate and publish Atlas
 on:
   push:
-    branches: [main]
+    branches: [main, atlas_coworker_integration]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -24,8 +24,13 @@ jobs:
           cache: npm
       - name: Install exact dependencies
         run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       - name: Validate data, components, types, and production output
         run: npm run build
+      - name: Verify local service and LM Studio contract
+        run: npm run test:python
       - name: Install test browser
         run: npx playwright install --with-deps chromium
       - name: Exercise the production website

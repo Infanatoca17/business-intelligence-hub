@@ -1,7 +1,7 @@
 import bundle from "./data/atlas-bundle.json";
 import type { SheetData } from "write-excel-file/browser";
 
-export const exportNote = `${bundle.meta.name} | Synthetic demonstration data | ${bundle.meta.asOf}`;
+export const exportNote = `${bundle.meta.product} | ${bundle.meta.name} | Synthetic demonstration data | ${bundle.meta.asOf}`;
 function download(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -29,7 +29,7 @@ export function createWorkbookSheets(
         keys.map((key) =>
           typeof row[key] === "number"
             ? (row[key] as number)
-            : String(row[key]),
+            : row[key] == null ? "" : String(row[key]),
         ),
       ),
     );

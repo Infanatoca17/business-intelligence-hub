@@ -90,6 +90,7 @@ button:hover:not(:disabled) {
   top: 10px;
 }
 .demo-banner {
+  flex-wrap: wrap;
   background: #e6ecd9;
   font-size: 11px;
   letter-spacing: 0.2px;
@@ -1179,7 +1180,7 @@ dialog.wide-modal {
     margin-left: 0;
   }
   .banner-separator {
-    display: none;
+    margin: 0 1px;
   }
   .header {
     flex-wrap: wrap;

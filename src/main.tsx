@@ -5,7 +5,9 @@ import React, {
   useRef,
   useState,
 } from "react";
-import bundle from "./data/atlas-bundle.json";
+import sourceBundle from "./data/atlas-bundle.json";
+import { CoworkerWorkspace } from "./Coworker";
+import { COWORKER_VIEWS, prepareSample } from "./coworker-engine.mjs";
 import { mean, sum, portfolioMetrics } from "./metrics.mjs";
 import {
   Bars,
@@ -19,6 +21,7 @@ import {
 } from "./charts";
 import { exportWorkbook } from "./exports";
 import "./style.css";
+const bundle = sourceBundle;
 
 const views = [
   "Overview",
@@ -29,6 +32,11 @@ const views = [
   "Funding Pipeline",
   "Risks",
   "Issues",
+  "Coworker",
+  "Data Quality",
+  "Risk Scenarios",
+  "Executive Brief",
+  "Methodology",
 ] as const;
 type View = (typeof views)[number];
 type Row = Record<string, unknown>;
@@ -372,9 +380,9 @@ function About({ close }: { close: () => void }) {
         Clear connections between delivery, resources, and exposure.
       </p>
       <p>
-        Atlas Impact Network is a fictional organization. This independent
-        portfolio product demonstrates how organizational information can become
-        an actionable, connected decision tool.
+        {bundle.meta.product} is an independent demo for Atlas Impact Network,
+        a fictional organization. It demonstrates how organizational information
+        can become an actionable, connected decision tool.
       </p>
       <h3>Explore the demo</h3>
       <ol>
@@ -404,8 +412,8 @@ function About({ close }: { close: () => void }) {
         </dd>
         <dt>Schedule</dt>
         <dd>
-          Behind schedule if actual progress is more than 10 percentage points
-          below expected; ahead if more than 10 points above; otherwise on
+          Behind schedule if actual progress is more than 7 percentage points
+          below expected; ahead if more than 7 points above; otherwise on
           track.
         </dd>
         <dt>Threat exposure index</dt>
@@ -440,8 +448,9 @@ function About({ close }: { close: () => void }) {
         All projects, people, donors, allocations, budgets, and scenarios are
         fictional. Geographic outlines and country names are public reference
         information; site names and project placements are fictional. Snapshot:{" "}
-        {date(bundle.meta.asOf)}. No live integrations or analytics are
-        configured.
+        {date(bundle.meta.asOf)}. The public demo is static. Local execution can
+        connect to LM Studio through the included Python service; analytics are
+        not configured.
       </p>
       <p className="disclaimer-box">{bundle.meta.disclaimer}</p>
       <p>
@@ -484,6 +493,7 @@ const projectColumns: Column[] = [
   { key: "expected", label: "Expected", render: pct },
   badgeCol("schedule", "Schedule"),
   { key: "exposure", label: "Exposure" },
+  { key: "expectedLossUsd", label: "Expected consequences (USD)", render: dollar },
 ];
 const deliverableColumns: Column[] = [
   { key: "name", label: "Deliverable" },
@@ -498,6 +508,8 @@ const riskColumns: Column[] = [
   { key: "project", label: "Project" },
   { key: "category", label: "Category" },
   { key: "score", label: "Exposure" },
+  { key: "probability", label: "Synthetic probability", render: v => pct(Number(v) * 100) },
+  { key: "expectedLossUsd", label: "Expected consequences (USD)", render: dollar },
   badgeCol("severity", "Severity"),
   badgeCol("status", "Status"),
   { key: "owner", label: "Owner" },
@@ -509,10 +521,13 @@ const riskColumns: Column[] = [
 function Project360({
   project: p,
   close,
+  data,
 }: {
   project: Project;
   close: () => void;
+  data: typeof bundle;
 }) {
+  const bundle = data;
   const related = <T extends { projectId: string }>(rows: T[]) =>
     rows.filter((r) => r.projectId === p.id);
   const finance = related(bundle.financials)[0];
@@ -561,7 +576,7 @@ function Project360({
         <Kpi
           label="Threat exposure"
           value={p.exposure}
-          detail="Index from 0 to 100"
+          detail={`${money(p.expectedLossUsd)} baseline expected consequences · USD`}
         />
         <Kpi
           label="Project budget"
@@ -638,6 +653,7 @@ function Project360({
           { key: "budget", label: "Budget", render: dollar },
           { key: "spent", label: "Expenditure", render: dollar },
           { key: "forecast", label: "Forecast", render: dollar },
+          { key: "expectedLossUsd", label: "Expected consequences", render: dollar },
           { key: "nextYearBudget", label: "Next year budget", render: dollar },
         ]}
         caption="Synthetic values in USD."
@@ -677,10 +693,17 @@ function readRoute() {
     project: bundle.projects.some((p) => p.id === q.get("project"))
       ? q.get("project")!
       : "",
+    scopeProject: bundle.projects.some((p) => p.id === q.get("scope-project")) ? q.get("scope-project")! : "",
+    sample: q.get("sample") === "defects" ? "defects" : "canonical",
   };
 }
 export function App() {
   const initial = useMemo(readRoute, []);
+  const [sample, setSample] = useState(initial.sample);
+  const [scopeProject, setScopeProject] = useState(initial.scopeProject);
+  const prepared = useMemo(() => prepareSample(sourceBundle, sample), [sample]);
+  const scopedBundle = prepared.data as typeof sourceBundle;
+  const bundle = scopedBundle;
   const [view, setView] = useState<View>(initial.view);
   const [program, setProgram] = useState(initial.program);
   const [office, setOffice] = useState(initial.office);
@@ -703,8 +726,10 @@ export function App() {
     if (office !== "All offices") q.set("office", office);
     if (status !== "All statuses") q.set("status", status);
     if (projectId) q.set("project", projectId);
+    if (scopeProject) q.set("scope-project", scopeProject);
+    if (sample === "defects") q.set("sample", sample);
     window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
-  }, [view, program, office, status, projectId]);
+  }, [view, program, office, status, projectId, scopeProject, sample]);
   useEffect(() => {
     const back = () => {
       const s = readRoute();
@@ -713,6 +738,8 @@ export function App() {
       setOffice(s.office);
       setStatus(s.status);
       setProjectId(s.project);
+      setScopeProject(s.scopeProject);
+      setSample(s.sample);
     };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
@@ -734,6 +761,7 @@ export function App() {
     setCategoryFilter("All");
     setImpactFilter("All");
     setLocationFilter("");
+    setScopeProject("");
   };
   const projects = useMemo(
     () =>
@@ -741,9 +769,10 @@ export function App() {
         (p) =>
           (program === "All programs" || p.program === program) &&
           (office === "All offices" || p.office === office) &&
-          (status === "All statuses" || p.status === status),
+          (status === "All statuses" || p.status === status) &&
+          (!scopeProject || p.id === scopeProject),
       ),
-    [program, office, status],
+    [program, office, status, scopeProject, bundle],
   );
   const ids = useMemo(() => new Set(projects.map((p) => p.id)), [projects]);
   const related = <T extends { projectId: string }>(rows: T[]) =>
@@ -897,6 +926,11 @@ export function App() {
     "Funding Pipeline": "Explore opportunities, stages, and future investment.",
     Risks: "Make uncertainty visible and response ownership clear.",
     Issues: "Track active disruptions and the actions that move them forward.",
+    Coworker: "Prepare evidence-based reporting with a guided or local AI coworker.",
+    "Data Quality": "Inspect findings, quarantined observations and reporting coverage.",
+    "Risk Scenarios": "Connect exposure with explicit financial and capacity assumptions.",
+    "Executive Brief": "Draft, review and export a brief from the same verified figures.",
+    Methodology: "Inspect the shared calculation contract and synthetic assumptions.",
   };
   const atRisk = projects.filter((p) => p.schedule === "Behind schedule");
   const offices = [...new Set(bundle.projects.map((p) => p.office))];
@@ -906,18 +940,18 @@ export function App() {
         Skip to main content
       </a>
       <div className="demo-banner">
-        <span className="demo-pulse" />
-        Independent portfolio demo <span className="banner-separator">
-          /
-        </span>{" "}
-        All business data is synthetic{" "}
-        <button onClick={() => setAbout(true)}>About the data ↗</button>
+        <span className="demo-pulse" aria-hidden="true" />
+        <span>Independent Demo</span>
+        <span className="banner-separator" aria-hidden="true">|</span>
+        <span>All Data is Synthetic</span>
+        <span className="banner-separator" aria-hidden="true">|</span>
+        <button onClick={() => setAbout(true)}>About the Data</button>
       </div>
       <header className="header">
         <a
           className="brand"
           href={`${import.meta.env.BASE_URL}`}
-          aria-label="Atlas Impact Network home"
+          aria-label={`${bundle.meta.product} home`}
         >
           <img
             src={`${import.meta.env.BASE_URL}atlas-mark.svg`}
@@ -1025,7 +1059,7 @@ export function App() {
         <div className="page-heading">
           <div>
             <div className="eyebrow">
-              PROGRAM INTELLIGENCE HUB <span>/</span> {bundle.meta.period}
+              {bundle.meta.productLabel} <span>/</span> {bundle.meta.period}
             </div>
             <h1>{view === "Overview" ? "The bigger picture." : view}</h1>
             <p>{subtitles[view]}</p>
@@ -1035,7 +1069,7 @@ export function App() {
               <Icon name="clock" size={14} /> Snapshot ·{" "}
               {date(bundle.meta.asOf)}
             </span>
-            <button
+            {!COWORKER_VIEWS.includes(view) && <button
               className="button primary"
               disabled={exporting}
               onClick={async () => {
@@ -1054,7 +1088,7 @@ export function App() {
             >
               <Icon name="export" />
               {exporting ? "Preparing export…" : "Export current view"}
-            </button>
+            </button>}
           </div>
         </div>
         {exportError && <p role="alert">{exportError}</p>}
@@ -1086,10 +1120,12 @@ export function App() {
           <button className="reset" onClick={reset}>
             ↺ Reset filters
           </button>
+          <label className="filter"><span>Project</span><select aria-label="Project" value={scopeProject} onChange={e => setScopeProject(e.target.value)}><option value="">All projects</option>{sourceBundle.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
           <span className="scope-count">
             {projects.length} projects in scope
           </span>
         </div>
+        <CoworkerWorkspace view={view} data={{ ...prepared.data, projects, ...Object.fromEntries(["deliverables", "risks", "plans", "staff", "financials", "funding", "observations"].map(k => [k, prepared.data[k].filter((r: { projectId: string }) => ids.has(r.projectId))])), qualityFindings: prepared.findings.filter((f: { projectId: string }) => ids.has(f.projectId) || !sourceBundle.projects.some(p => p.id === f.projectId)) }} filters={{ program, office, status, project: scopeProject }} sample={sample} setSample={setSample} navigate={navigate} openProject={openProject} />
         {view === "Overview" && (
           <>
             <div className="kpi-grid">
@@ -1121,6 +1157,8 @@ export function App() {
                 detail={`${metrics.riskCount} risks · ${metrics.issueCount} issues`}
                 onClick={() => navigate("Risks")}
               />
+              <Kpi label="Portfolio exposure index" value={`${metrics.exposure} / 100`} detail="Mean of project exposure indices" onClick={() => navigate("Risk Scenarios")} />
+              <Kpi label="Expected financial consequences" value={money(metrics.expectedLoss)} detail="Baseline synthetic probabilities · USD" onClick={() => navigate("Risk Scenarios")} />
             </div>
             <div className="section-title">
               <div>
@@ -1187,8 +1225,8 @@ export function App() {
                 </strong>
                 <p>
                   {atRisk.length
-                    ? "Actual delivery is more than 10 percentage points behind expected progress."
-                    : "No selected project is more than 10 percentage points behind expected progress."}
+                    ? "Actual delivery is more than 7 percentage points behind expected progress."
+                    : "No selected project is more than 7 percentage points behind expected progress."}
                 </p>
               </div>
               <button
@@ -1222,7 +1260,7 @@ export function App() {
                   projectRows.filter((p) => p.schedule === "Behind schedule")
                     .length
                 }
-                detail="Gap greater than 10 percentage points"
+                detail="Gap greater than 7 percentage points"
               />
               <Kpi
                 label="Average exposure"
@@ -1396,6 +1434,11 @@ export function App() {
                 value={pct(metrics.burn)}
                 detail="Actual expenditure ÷ budget"
               />
+              <Kpi
+                label="Expected consequences"
+                value={money(metrics.expectedLoss)}
+                detail="Baseline probability × loss · USD"
+              />
             </div>
             <div className="chart-grid">
               <Bars
@@ -1422,6 +1465,7 @@ export function App() {
                 { key: "budget", label: "Budget", render: dollar },
                 { key: "spent", label: "Expenditure", render: dollar },
                 { key: "forecast", label: "Forecast", render: dollar },
+                { key: "expectedLossUsd", label: "Expected consequences", render: dollar },
                 {
                   key: "nextYearBudget",
                   label: "Next year budget",
@@ -1606,7 +1650,7 @@ export function App() {
               alt=""
             />
             <strong>Atlas Impact Network</strong>
-            <span>Program Intelligence Hub · v{bundle.meta.version}</span>
+            <span>{bundle.meta.productLabel} · v{bundle.meta.version}</span>
           </div>
           <p>{bundle.meta.disclaimer}</p>
           <div className="footer-links">
@@ -1628,7 +1672,7 @@ export function App() {
       </main>
       {about && <About close={() => setAbout(false)} />}{" "}
       {selected && (
-        <Project360 project={selected} close={() => setProjectId("")} />
+        <Project360 project={selected} data={bundle} close={() => setProjectId("")} />
       )}
     </>
   );

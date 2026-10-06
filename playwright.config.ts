@@ -9,6 +9,10 @@ export default defineConfig({
     baseURL: previewURL,
     browserName: "chromium",
     viewport: { width: 1440, height: 1000 },
+    launchOptions: process.env.ATLAS_CHROMIUM_EXECUTABLE ? {
+      executablePath: process.env.ATLAS_CHROMIUM_EXECUTABLE,
+      args: process.env.ATLAS_CHROMIUM_ARGS ? JSON.parse(process.env.ATLAS_CHROMIUM_ARGS) : [],
+    } : undefined,
   },
   webServer: {
     command: "npm run preview",
