@@ -2,7 +2,7 @@
 
 **Fictional organization:** Atlas Impact Network
 
-**Assistant:** Coworker · **Version:** 1.1.1
+**AI Assistant:** Coworker · **Version:** 1.1.1
 
 **Portfolio owner:** [Ivan Morales · Infanatoca17](https://github.com/Infanatoca17)
 
@@ -14,7 +14,7 @@
 
 At organizations, decision-makers often review data from multiple sources with different reporting methods. To assist them, I designed an integrated data hub that translates complex information into simple and actionable tools that anyone can use. This demo is built using automated workflows, relational models and an intuitive interface to support informed conversations.
 
-Coworker connects portfolio reporting, evidence review and financial scenarios in this same application. The public demo uses verified calculations and guided templates. An optional Python service lets a locally installed LM Studio model draft narratives from those verified facts and evidence. Human review remains part of the workflow.
+Coworker is an AI Assistant: It connects portfolio and project reporting data, evidence review and financial scenarios. The  demo uses verified calculations and guided templates. However, it is enabled to run Python using locally installed LM Studio models to generate insights from verified facts and evidence.
 
 ## Explore the Business Intelligence Hub in one minute
 
@@ -44,9 +44,9 @@ Coworker connects portfolio reporting, evidence review and financial scenarios i
 | Project 360 | Project profile, deliverables, response plan, risks/issues, staffing, financials, funding, copyable URL |
 | Search / help | Cross-portfolio project, deliverable, person, location and risk search; demo methodology and provenance |
 
-Charts export as **PNG/SVG**. Tables and current views export as **XLSX**. Coworker also provides **scenario CSV** and **executive Markdown** exports. Review is recorded only in the current browser session.
+Charts export as **PNG**. Tables and current views export as **XLSX**. Coworker also provides **scenario CSV** and **executive Markdown** exports.
 
-## Data and common methodology
+## Data and methodology
 
 - 48 projects (44 active, 4 planned), 288 deliverables, and 48 response plans.
 - 96 risks and 48 issues, with synthetic probability, USD loss and delay assumptions.
@@ -55,13 +55,13 @@ Charts export as **PNG/SVG**. Tables and current views export as **XLSX**. Cowor
 - 576 monthly observations: 12 per project, October 2025–September 2026.
 - 6 synthetic methodology/evidence documents, plus inspectable project and reporting records.
 
-Current progress is the mean completion of each project's six deliverables. **On track** uses a **±7 percentage-point** tolerance. The ordinal exposure index and expected financial loss use the same non-closed threats but retain separate units. Likelihood levels 1–5 map to **10%, 25%, 45%, 65%, 85%** synthetic probabilities; occurred issues use **100%**. These probabilities are explicit demonstration assumptions, not calibrated estimates.
+Current progress is the mean completion of each project's deliverables. **On track** uses a **±7 percentage-point** tolerance. The ordinal exposure index and expected financial loss use the same non-closed threats but retain separate units. Likelihood levels 1–5 map to **10%, 25%, 45%, 65%, 85%** probabilities; occurred issues use **100%**.
 
 See [METHODOLOGY.md](docs/METHODOLOGY.md), [DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md), and [RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
 
 ## Run, validate and update
 
-Use Node 22.14+ in major 22 or Node 24, and Python 3.10+ for the optional local service.
+To run locally, sse Node 22.14+ in major 22 or Node 24, and Python 3.10+.
 
 ```powershell
 npm.cmd ci
@@ -79,7 +79,7 @@ Preview: [127.0.0.1:4173/business-intelligence-hub](http://127.0.0.1:4173/busine
 - Manual checks and reference figures: [WALKTHROUGH.md](docs/WALKTHROUGH.md).
 - Executed tests and practical limitations: [VALIDATION.md](docs/VALIDATION.md).
 
-There is one workflow, `.github/workflows/pages.yml`. It validates the integration branch, pull requests and main. It publishes the frontend to GitHub Pages only after main passes validation. Python and LM Studio run on your computer, not on GitHub Pages.
+There is one workflow, `.github/workflows/pages.yml`. It validates the integration branch, pull requests and main. It publishes the frontend to GitHub Pages only after main passes validation. Python and LM Studio run on your local computer, not on GitHub Pages.
 
 ## Architecture
 
@@ -98,10 +98,10 @@ flowchart TB
 
 The public application loads its data, geography, styling and logo from compiled assets. It has no operational data connectors, remote fonts, analytics, external images or sign-in. It makes a same-origin capability request to detect the optional local service; on Pages, local AI is unavailable and guided mode remains usable. The GitHub profile link opens only when selected by a visitor.
 
-For local inference, the Python service serves the built frontend and API from localhost. It calls LM Studio's localhost endpoint and keeps optional LM Studio authentication in the server environment. The model can draft text; it cannot replace calculated figures, repair records, send messages or approve reports. Structured JSON and citation checks do not establish narrative accuracy.
+For local inference, the Python service serves the built frontend and API from localhost. It calls LM Studio's localhost endpoint and keeps optional LM Studio authentication in the server environment. The model can draft text; it cannot replace calculated figures, repair records, send messages or approve reports.
 
 ## Dependencies, attribution and licensing
 
-Exact frontend dependency versions are recorded in `package-lock.json`. The Python service uses its standard library and the existing Node calculation engine. Model weights are not included. Public geographic data and third-party software notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); model licensing belongs to the selected model's source.
+Exact frontend dependency versions are recorded in `package-lock.json`. Model weights are not included. Public geographic data and third-party software notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); model licensing belongs to the selected model's source.
 
-Portfolio concept, direction and acceptance belong to Ivan Morales. This integration's implementation and documentation were prepared with AI assistance and are supplied with reproducible checks for further review.
+This product's concept, direction and acceptance belong to Ivan Morales.
