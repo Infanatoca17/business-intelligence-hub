@@ -1,38 +1,45 @@
-# Validation record — Atlas Business Intelligence Hub v1.1.1 Coworker
+# Validation record — Atlas Business Intelligence Hub v1.2.0
 
-Prepared 5 October 2026 against the supplied branch ZIP baseline. The business snapshot remains 22 September 2026. This record separates executed checks from validation that remains on the owner's machine or GitHub.
+Prepared **6 October 2026** from the previously delivered v1.1.1 Coworker source checkpoint. The business snapshot remains **22 September 2026**. The user's remote checkout was not accessed; the patch is tested against the captured source baseline, not claimed to match subsequent personal edits.
 
-## Executed successfully
+## Executed checks
 
 | Check | Result |
 |---|---|
-| Deterministic data and shared calculations | 16 Node tests passed |
-| React component interactions | 21 Vitest/jsdom tests passed |
-| Python service and LM Studio contract | 11 unittest tests passed |
-| Browser interactions and downloaded artifacts | 10 Playwright tests passed in Chromium 153 |
+| Node data/engine/history tests | **22 passed** |
+| React component tests, jsdom | **26 passed** |
+| Python service and LM Studio contract tests | **11 passed** |
 | TypeScript | `tsc --noEmit` passed |
 | Production build | Vite build passed |
-| Static release audit | Correct Pages base; no source maps or reference-project branding/endpoints |
-| Patch/ZIP integrity | Update applies to the captured branch baseline; packaged source reconciles with working files |
+| Static output audit | Passed; correct Pages base and product identities |
+| Browser suite discovery | **12 tests listed**; browser execution not performed here |
+| Baseline semantics | Current progress, financials, risk/probability assumptions, staff, funding, monthly evidence and current deliverable statuses/completions unchanged |
+| Local service preservation | All four `atlas_coworker/` source files byte-identical to v1.1.1; default application/API port remains 8765 |
+| Incremental patch and archive | Fresh baseline application, complete source comparison and ZIP CRC verification performed before delivery |
 
-**58 automated tests passed.** Current branch: `atlas_coworker_integration`. Product: Atlas Business Intelligence Hub; fictional organization: Atlas Impact Network. Node 24.19.0 and Python 3.12.14 were used here. The workflow uses Node 22 and Python 3.13; that GitHub-hosted combination is supplied for validation, not claimed as executed here. Existing pinned dependencies were retained.
+**59 automated tests were executed successfully.** Browser test discovery is not counted as a passed test. Node 24.19.0 and Python 3.12 were used. Dependencies were retained; only package version metadata changed.
 
-Data/engine checks cover reproducibility, the 48-project base, relationships, deliverable-derived progress, ±7 boundaries, monthly observation coverage, explicit probabilities, closed threats, common scope, the defect fixture, baseline/scenario totals, zero-progress null projections, guided responses and Markdown figures.
+Data tests cover current snapshot reproduction, valid synthetic event chronology, completion anchored to the snapshot, quarter boundaries, status transitions at due/start/completion dates, filtered ribbon/table/export reconciliation, empty scopes and approved-budget stack totals. Component tests cover hidden routes, retained quality/review code, eight navigation entries and header launcher, office labels/order/legacy URLs, embedded scenarios and retained settings, ribbon filters/reset/typed workbook cells, PNG-only controls and footer navigation. Existing common calculation and local response race checks remain.
 
-React tests cover original Atlas interactions and dialog focus restoration, Coworker sources, review gates/resets and local-mode presentation. Browser checks exercise the compiled frontend, global filters/project scope, sample correction, native dialogs, navigation/search, scenario sliders/matrix, mobile layout, real CSV/XLSX/Markdown/SVG/PNG downloads and matching numeric values. Downloaded workbook cells and brief figures are inspected rather than only checking a download event.
+Python tests use mock LM Studio model/chat endpoints, JSON-schema/citation validation, authentication, fallback and the service's actual HTTP boundary. They do not run Qwen weights. The user confirmed real local inference in the preceding v1.1.1 installation; that does not establish real inference for this changed bundle. Evaluate v1.2.0 using LM_STUDIO_SETUP.md.
 
-Python tests execute an in-process HTTP mock of LM Studio's models/chat endpoints, including path, optional bearer authentication, JSON-schema request, response validation, unavailable-model fallback and evidence IDs. They also execute the application HTTP boundary, built asset subpath, input validation and shared Node calculations. Browser model responses are mocked. These establish integration behavior, not inference quality of a real model.
+## Browser and publication checks remaining
 
-Desktop and 390-pixel mobile screenshots were inspected for readable controls, cards, tables and evidence navigation. Additional compiled-browser checks confirmed the official browser title, exact banner labels, short product header/footer, organization identity, About content and visible mobile separators. Business datasets were compared with the prior v1.1.0 integration and are identical; only metadata changed. The environment used a separate packaged Chromium binary because the standard browser download was unavailable; it is not an application dependency. The workflow and normal local instructions retain Playwright's standard browser installer.
+A supported browser-preview runtime was unavailable in this execution environment. No browser was installed or substituted, no visual screenshot was produced for the new version, and **the 12 Playwright tests were not executed here**. Layout correctness beyond component assertions remains subject to local/CI browser validation.
 
-The production app's main JavaScript chunk is approximately 910 kB before compression and 166 kB with gzip, including the synthetic data/evidence bundle. Vite reports its standard large-chunk warning; compilation succeeds. Workbook generation loads separately. These are build sizes, not measured load timings.
+Run:
 
-## Remaining validation
+```powershell
+npx.cmd playwright install chromium
+npm.cmd run test:ui
+```
 
-- Install/load a real model in LM Studio, run `python -m atlas_coworker check`, then `python -m atlas_coworker evaluate`. Require `mode: local_ai` and inspect narrative claims; a guided fallback is not a successful inference check.
-- Run the supplied checks on the owner's system and complete [WALKTHROUGH.md](WALKTHROUGH.md), including reference figures, scenario assumptions and review reset.
-- Push the update to the existing branch and inspect its new workflow run. No remote commit, push, PR, merge, Actions execution or Pages deployment was performed here. Main-only deployment and the published guided demo remain to be confirmed in GitHub.
+The supplied suite checks 1440-pixel KPI rows/nav alignment, equal Projects chart widths, 390-pixel body overflow, keyboard ribbon selection, quarter persistence/simulation labels, CSV/XLSX numeric contents, PNG signatures/dimensions and mock AI presentation. It uses Vite preview on 4173 during tests; this does not alter Python's 8765 port. Follow WALKTHROUGH.md for the manual visual and real-model checks.
 
-Schema and valid-source checks cannot prove narrative accuracy. Review is session-only. Synthetic probability/loss assumptions are uncalibrated. See [LM_STUDIO_SETUP.md](LM_STUDIO_SETUP.md) and [METHODOLOGY.md](METHODOLOGY.md).
+The single Pages workflow still validates branches and PRs, then publishes only a successful main build. No remote GitHub action, commit, push, PR, merge or deployment was performed. Public Pages runs guided mode; the local model remains on the owner's machine.
 
-> This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
+## Interpretation limits
+
+The ribbon history was generated because the original bundle lacked creation/start/completion dates. Cuts after the snapshot are explicitly synthetic simulations, including September 30, 2026. Completion uses a deterministic event curve rather than measured reports. Historical Deliverables selection does not change other views' fixed current-snapshot metrics. Ordinal exposure and USD consequences retain their distinct units and original formulas.
+
+The complete ZIP is a source checkpoint, not a Git history archive. Builds, dependencies and weights are intentionally excluded and reproducible using the supplied configuration. A patch context mismatch on a personally edited checkout requires a reviewed per-file merge rather than forced application.

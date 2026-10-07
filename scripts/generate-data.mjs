@@ -9,13 +9,15 @@ import {
   scheduleStatus,
 } from "../src/metrics.mjs";
 
+import { deliveryEvents } from "../src/delivery-history.mjs";
+
 // Every business record is created here. No original source data is read.
 export function generateBundle() {
   const meta = {
     name: "Atlas Impact Network",
     product: "Atlas Business Intelligence Hub",
     productLabel: "Business Intelligence Hub",
-    version: "1.1.1",
+    version: "1.2.0",
     asOf: "2026-09-22",
     period: "Q3 2026",
     seed: 17092026,
@@ -62,12 +64,12 @@ export function generateBundle() {
     },
   ];
   const offices = [
-    "Americas Hub",
-    "Europe Hub",
-    "Africa Hub",
-    "South Asia Hub",
-    "East Asia Hub",
-    "Oceania Hub",
+    "Americas",
+    "Europe",
+    "Africa",
+    "South Asia",
+    "East Asia",
+    "Oceania",
   ];
   const regions = [
     ["Mexico", -99.1, 19.4],
@@ -436,6 +438,7 @@ export function generateBundle() {
   });
   projects.forEach(p => { p.expectedLossUsd = risks.filter(r => r.projectId === p.id).reduce((s, r) => s + r.expectedLossUsd, 0); });
   financials.forEach(f => { f.expectedLossUsd = projects.find(p => p.id === f.projectId).expectedLossUsd; });
+  deliverables.forEach((d, i) => Object.assign(d, deliveryEvents(d, projects.find(p => p.id === d.projectId), meta.asOf, i)));
   const observations = projects.flatMap(p => {
     const finance = financials.find(f => f.projectId === p.id);
     const ds = deliverables.filter(d => d.projectId === p.id);

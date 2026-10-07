@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { CoworkerWorkspace } from '../src/Coworker';
 import { beforeEach, afterEach, test, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within, cleanup, waitFor } from '@testing-library/react';
 import { App } from '../src/main';
@@ -8,7 +9,8 @@ import { createWorkbookSheets } from '../src/exports';
 import { basePath } from '../deployment-base.mjs';
 import writeExcelFile from 'write-excel-file/node';
 import { unzipSync, strFromU8 } from 'fflate';
-const nav = (name: string) => fireEvent.click(within(screen.getByRole('navigation')).getByRole('button', { name, exact: true }));
+const nav = (name: string) => { if (name === 'Coworker') fireEvent.click(screen.getByRole('button', { name: 'Open Coworker' })); else if (name === 'Risk Scenarios') { fireEvent.click(within(screen.getByRole('navigation')).getByRole('button', { name: 'Risks', exact: true })); fireEvent.click(screen.getByRole('button', { name: 'Risk scenarios', exact: true })); } else if (['Data Quality', 'Executive Brief', 'Methodology'].includes(name)) fireEvent.click(screen.getByRole('button', { name: `Inspect ${name}` })); else fireEvent.click(within(screen.getByRole('navigation')).getByRole('button', { name, exact: true })); };
+function RetainedWorkspaces() { const [view, setView] = useState('Data Quality'); const [sample, setSample] = useState('canonical'); const prepared = prepareSample(raw, sample); return <>{['Data Quality', 'Executive Brief', 'Methodology'].map(v => <button key={v} onClick={() => setView(v)}>Inspect {v}</button>)}<CoworkerWorkspace view={view} data={prepared.data} filters={{}} sample={sample} setSample={setSample} navigate={setView} openProject={() => {}} /></>; }
 beforeEach(() => {
   window.history.replaceState(null, '', basePath);
   HTMLDialogElement.prototype.showModal = function() { this.setAttribute('open', ''); };
@@ -16,20 +18,20 @@ beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Static demo')));
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
-test('All Coworker screens are React views and preserve global program scope', () => {
+test('Coworker and embedded scenarios preserve global program scope', () => {
   render(<App />);
   fireEvent.change(screen.getByLabelText('Program', { exact: true }), { target: { value: 'Health' } });
   const m = coworkerFacts(selectScope(prepareSample(raw).data, { program: 'Health' }));
-  for (const name of ['Coworker', 'Data Quality', 'Risk Scenarios', 'Executive Brief', 'Methodology']) {
+  for (const name of ['Coworker', 'Risk Scenarios']) {
     nav(name);
-    expect(screen.getByRole('heading', { name, exact: true, level: 1 })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: name === 'Risk Scenarios' ? 'Risks' : name, exact: true, level: 1 })).toBeTruthy();
     expect(screen.getByTestId('cw-progress').textContent).toBe(`${m.actual.toFixed(1)}%`);
     expect(screen.getByTestId('cw-spending').textContent).toBe(dollars(m.spent));
     expect(screen.getByText('12 projects in scope')).toBeTruthy();
   }
 });
 test('Quality sample applies globally and blocks brief review until corrected', () => {
-  render(<App />); nav('Data Quality');
+  render(<RetainedWorkspaces />); nav('Data Quality');
   fireEvent.click(screen.getByRole('button', { name: 'Load defect sample' }));
   expect(screen.getByRole('table', { name: 'Quality findings' }).querySelectorAll('tbody tr')).toHaveLength(8);
   nav('Executive Brief');
@@ -44,21 +46,18 @@ test('Quality sample applies globally and blocks brief review until corrected', 
   fireEvent.change(screen.getByLabelText('Executive narrative'), { target: { value: '' } });
   expect((screen.getByRole('button', { name: 'Mark scope reviewed' }) as HTMLButtonElement).disabled).toBe(true);
 });
-test('Scenario controls update results, matrix filters threats and project links open Project 360', () => {
+test('Scenario controls update results without a matrix and project links open Project 360', () => {
   render(<App />); nav('Risk Scenarios');
   const original = screen.getByTestId('cw-gap').textContent;
   fireEvent.change(screen.getByRole('slider', { name: 'Funding reduction' }), { target: { value: 20 } });
   expect(screen.getByTestId('cw-gap').textContent).not.toBe(original);
-  const cell = within(screen.getByRole('table', { name: 'Threat matrix' })).getAllByRole('button').find(b => !(b as HTMLButtonElement).disabled)!;
-  fireEvent.click(cell);
-  const count = Number(cell.textContent);
-  expect(screen.getByRole('table', { name: 'Scenario threat register' }).querySelectorAll('tbody tr')).toHaveLength(count);
+  expect(screen.queryByRole('table', { name: 'Threat matrix' })).toBeNull();
   fireEvent.click(within(screen.getByRole('table', { name: 'Project scenario results' })).getAllByRole('button')[0]);
   expect(screen.getByRole('dialog', { name: 'Project 360' })).toBeTruthy();
 });
 test('Evidence is inspectable and unsupported questions are explicitly refused', async () => {
   render(<App />); nav('Coworker');
-  fireEvent.click(screen.getByRole('button', { name: 'CALC-PORTFOLIO · Verified scope figures' }));
+  fireEvent.click(screen.getByRole('button', { name: 'CALC-PORTFOLIO', exact: true }));
   expect(screen.getByRole('dialog', { name: 'Evidence source' }).textContent).toContain('"projects": 48');
   fireEvent.click(screen.getByRole('button', { name: 'Close evidence source' }));
   fireEvent.change(screen.getByLabelText('Question for Coworker'), { target: { value: 'What is the weather?' } });

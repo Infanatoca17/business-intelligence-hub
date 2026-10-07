@@ -23,18 +23,12 @@ export const compact = (n: number) =>
   }).format(n);
 export const money = (n: number) => `$${compact(n)}`;
 
-function Tools({ id, title }: { id: string; title: string }) {
+export function ChartTools({ id, title, context }: { id: string; title: string; context?: string }) {
   return (
     <span className="chart-tools">
       <button
-        aria-label={`Download ${title} as SVG`}
-        onClick={() => exportChart(id, title, "svg")}
-      >
-        SVG
-      </button>
-      <button
         aria-label={`Download ${title} as PNG`}
-        onClick={() => exportChart(id, title, "png")}
+        onClick={() => exportChart(id, title, context)}
       >
         PNG ↓
       </button>
@@ -69,13 +63,14 @@ export function Scatter({
               : "Actual delivery against elapsed project time"}
           </p>
         </div>
-        <Tools id={id} title={title} />
+        <ChartTools id={id} title={title} />
       </div>
       <svg id={id} viewBox="0 0 590 340" role="img" aria-label={title}>
         <rect x="58" y="57" width="485" height="222" rx="2" fill="#fafbf8" />
         {exposure ? (
           <>
             <rect x="58" y="57" width="194" height="222" fill="#edf4ec" />
+            <rect x="252" y="57" width="145" height="222" fill="#f5e9b9" />
             <rect x="397" y="57" width="146" height="222" fill="#fbefed" />
             <text x="74" y="76" fontSize="10" fill="#617d68">
               LOWER EXPOSURE
@@ -222,7 +217,7 @@ export function Globe({
           <h2>Our footprint</h2>
           <p>Fictional initiatives. A connected perspective.</p>
         </div>
-        <Tools id={id} title="Atlas geographic footprint" />
+        <ChartTools id={id} title="Atlas geographic footprint" />
       </div>
       <div className="globe-content">
         <svg
@@ -343,84 +338,33 @@ export function Globe({
     </section>
   );
 }
-export function Bars({
-  title,
-  subtitle,
-  entries,
-  onSelect,
-  currency = false,
-}: {
-  title: string;
-  subtitle: string;
-  entries: { label: string; value: number; color?: string }[];
-  onSelect?: (label: string) => void;
-  currency?: boolean;
+export function Bars({ title, subtitle, entries, onSelect, currency = false, exportContext }: {
+  title: string; subtitle: string; entries: { label: string; value: number; color?: string }[];
+  onSelect?: (label: string) => void; currency?: boolean; exportContext?: string;
 }) {
   const id = `bars-${useId().replaceAll(":", "")}`;
-  const max = Math.max(...entries.map((e) => e.value), 1);
-  const height = Math.max(190, entries.length * 44 + 32);
-  return (
-    <section className="panel chart-panel">
-      <div className="panel-heading">
-        <div>
-          <h2>{title}</h2>
-          <p>{subtitle}</p>
-        </div>
-        <Tools id={id} title={title} />
-      </div>
-      <svg id={id} viewBox={`0 0 590 ${height}`} role="img" aria-label={title}>
-        {entries.map((e, i) => (
-          <g
-            key={e.label}
-            role={onSelect ? "button" : undefined}
-            tabIndex={onSelect ? 0 : undefined}
-            aria-label={onSelect ? `Filter ${e.label}` : undefined}
-            onClick={() => onSelect?.(e.label)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") onSelect?.(e.label);
-            }}
-          >
-            <text x="16" y={i * 44 + 27} fontSize="11" fill="#3f5c51">
-              {e.label.length > 24 ? `${e.label.slice(0, 22)}…` : e.label}
-            </text>
-            <rect
-              x="190"
-              y={i * 44 + 12}
-              width="315"
-              height="24"
-              fill="#f0f3ed"
-              rx="4"
-            />
-            <rect
-              x="190"
-              y={i * 44 + 12}
-              width={(e.value / max) * 315}
-              height="24"
-              fill={e.color || colors[i % colors.length]}
-              rx="4"
-            />
-            <text
-              x="568"
-              y={i * 44 + 28}
-              textAnchor="end"
-              fontSize="12"
-              fontWeight="600"
-              fill="#294d40"
-            >
-              {currency ? money(e.value) : compact(e.value)}
-            </text>
-            <title>
-              {e.label}: {e.value.toLocaleString("en-US")}
-              {currency ? " USD" : ""}
-            </title>
-          </g>
-        ))}
-        {!entries.length && (
-          <text x="295" y="95" textAnchor="middle" fill="#677a72">
-            No records match these filters.
-          </text>
-        )}
-      </svg>
-    </section>
-  );
+  const max = Math.max(...entries.map(e => e.value), 1);
+  const left = 64, right = 566, base = 242, top = 50;
+  const step = (right - left) / Math.max(entries.length, 1), bar = Math.min(64, step * .6);
+  const lines = (label: string) => {
+    const result: string[] = [];
+    for (const word of label.split(' ')) {
+      if (!result.length || (result[result.length - 1] + ' ' + word).length > 17) result.push(word);
+      else result[result.length - 1] += ' ' + word;
+    }
+    return result;
+  };
+  return <section className="panel chart-panel"><div className="panel-heading"><div><h2>{title}</h2><p>{subtitle}</p></div><ChartTools id={id} title={title} context={exportContext} /></div>
+    <svg id={id} viewBox="0 0 590 340" role="img" aria-label={title}>
+      {[0, .25, .5, .75, 1].map(f => <g key={f}><line x1={left} x2={right} y1={base - f * (base - top)} y2={base - f * (base - top)} stroke="#dce5df" /><text x={left - 9} y={base - f * (base - top) + 4} textAnchor="end" fontSize="11" fill="#536a61">{currency ? money(max * f) : compact(max * f)}</text></g>)}
+      {entries.map((entry, i) => { const center = left + step * (i + .5), height = entry.value / max * (base - top);
+        return <g key={entry.label} role={onSelect ? 'button' : undefined} tabIndex={onSelect ? 0 : undefined} aria-label={onSelect ? `Filter ${entry.label}` : undefined} onClick={() => onSelect?.(entry.label)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect?.(entry.label); } }}>
+          <rect x={center - bar / 2} y={base - height} width={bar} height={height} fill={entry.color || colors[i % colors.length]} rx="4" />
+          <text x={center} y={base - height - 9} textAnchor="middle" fontSize="12" fontWeight="600" fill="#294d40">{currency ? money(entry.value) : compact(entry.value)}</text>
+          <text x={center} y="265" textAnchor="middle" fontSize="11" fill="#536a61">{lines(entry.label).map((line, n) => <tspan key={n} x={center} dy={n ? 14 : 0}>{line}</tspan>)}</text>
+          <title>{entry.label}: {entry.value.toLocaleString('en-US')}{currency ? ' USD' : ''}</title>
+        </g>;
+      })}
+      {!entries.length && <text x="315" y="145" textAnchor="middle" fill="#677a72">No records match these filters.</text>}
+    </svg></section>;
 }

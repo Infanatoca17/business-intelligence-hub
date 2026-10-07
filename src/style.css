@@ -1434,3 +1434,49 @@ dialog.wide-modal {
     transition: none !important;
   }
 }
+
+/* v1.2: keep the portfolio canvas compact and give Coworker its own entry. */
+.nav { justify-content: center; flex-wrap: wrap; column-gap: 30px; overflow: visible; }
+.nav button { flex-shrink: 0; }
+.footer-return-actions { display: inline-flex; align-items: center; gap: 21px; margin-left: auto; }
+.footer-return-actions button:last-child { margin-left: 0; }
+.search-wrap { min-width: 0; }
+.coworker-launcher { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; background: #173d36; color: #fffdf8; border: 1px solid #173d36; border-radius: 999px; padding: 11px 15px; font-size: 12px; font-weight: 600; }
+.coworker-launcher:hover, .coworker-launcher[aria-pressed="true"] { background: #285b4c; box-shadow: 0 0 0 3px #e2ecd8; }
+.overview-kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.financial-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.overview-kpis .kpi, .financial-kpis .kpi { min-width: 0; min-height: 138px; padding: 17px 14px; }
+.overview-kpis .kpi strong, .financial-kpis .kpi strong { font-size: clamp(24px, 2.3vw, 32px); letter-spacing: -1px; }
+.overview-kpis .kpi-label, .financial-kpis .kpi-label { align-items: flex-start; min-height: 28px; line-height: 1.4; }
+.overview-kpis .kpi-label svg, .financial-kpis .kpi-label svg { flex-shrink: 0; }
+.projects-charts { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+.risk-view-toggle { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: #eef3e9; margin-bottom: 20px; }
+.risk-view-toggle button { padding: 10px 18px; border-radius: 7px; font-size: 12px; color: #31544c; }
+.risk-view-toggle button[aria-pressed="true"] { background: #173d36; color: #fffdf8; }
+.ribbon-scroll { overflow-x: auto; max-width: 100%; padding: 0 20px; }
+.ribbon-scroll svg { display: block; width: 100%; }
+.ribbon-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 2px 20px 4px; }
+.ribbon-legend button { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; border-bottom: 2px solid transparent; padding: 5px 0; }
+.ribbon-legend button[aria-pressed="true"] { border-color: #173d36; font-weight: 650; }
+.ribbon-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.delivery-ribbon-panel { margin-bottom: 20px; overflow: hidden; }
+.delivery-ribbon-panel .panel-heading { padding-top: 14px; padding-bottom: 8px; }
+.delivery-ribbon-panel polygon[role="button"], .quarter-cut { cursor: pointer; }
+.delivery-ribbon-panel polygon:hover { stroke: #173d36; stroke-width: 2; }
+.quarter-cut:hover rect, .quarter-cut:focus rect { fill: #e2ecd8; }
+.delivery-cut-summary { display: flex; justify-content: space-between; gap: 15px; flex-wrap: wrap; font-size: 12px; color: #31544c; padding: 12px 0; }
+@media (max-width: 1050px) {
+  .overview-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .financial-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nav { column-gap: 22px; }
+}
+@media (max-width: 760px) {
+  .overview-kpis, .financial-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .projects-charts { grid-template-columns: 1fr; }
+  .nav { column-gap: 19px; }
+  .nav button { padding: 10px 0 8px; }
+  .coworker-launcher { padding: 9px 11px; font-size: 11px; gap: 5px; }
+  .coworker-launcher > svg:last-child, .header > .avatar { display: none; }
+  .ribbon-scroll { padding: 0 10px; }
+  .overview-kpis .kpi strong, .financial-kpis .kpi strong { font-size: 27px; }
+}

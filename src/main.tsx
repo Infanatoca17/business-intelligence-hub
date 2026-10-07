@@ -20,6 +20,10 @@ import {
   exposureColor,
 } from "./charts";
 import { exportWorkbook } from "./exports";
+import { DeliveryRibbon } from "./DeliveryRibbon";
+import { ProjectBudget } from "./ProjectBudget";
+import { deliveryRowsAt, quarterCuts } from "./delivery-history.mjs";
+import { NAVIGATION_VIEWS, OPTIONAL_VIEWS, OPTIONAL_WORKSPACES_ENABLED } from "./portfolio-ui.mjs";
 import "./style.css";
 const bundle = sourceBundle;
 
@@ -95,6 +99,7 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
         <path d="M8 16 16 8M9 6l2-2a5 5 0 0 1 7 7l-2 2M15 18l-2 2a5 5 0 0 1-7-7l2-2" />
       </>
     ),
+    coworker: <><path d="M4 4h16v12H9l-5 4V4Z" /><path d="M8 8h8M8 12h5" /></>,
     check: <path d="m5 12 4 4L19 6" />,
   };
   return (
@@ -678,14 +683,16 @@ function readRoute() {
   const q = new URLSearchParams(window.location.search);
   return {
     view:
-      views.find(
-        (v) => v.toLowerCase().replaceAll(" ", "-") === q.get("view"),
-      ) || "Overview",
+      (q.get("view") === "risk-scenarios" ? "Risks" : views.find(
+        (v) => v.toLowerCase().replaceAll(" ", "-") === q.get("view") && (OPTIONAL_WORKSPACES_ENABLED || !OPTIONAL_VIEWS.includes(v)),
+      )) || "Overview",
+    riskMode: q.get("view") === "risk-scenarios" || q.get("risk-view") === "scenarios" ? "scenarios" : "register",
+    deliverableCut: quarterCuts(bundle.deliverables).some(c => c.date === q.get("deliverable-cut")) ? q.get("deliverable-cut")! : "",
     program: bundle.programs.some((p) => p.name === q.get("program"))
       ? q.get("program")!
       : "All programs",
-    office: bundle.projects.some((p) => p.office === q.get("office"))
-      ? q.get("office")!
+    office: bundle.projects.some((p) => p.office === q.get("office")?.replace(/ Hub$/, ""))
+      ? q.get("office")!.replace(/ Hub$/, "")
       : "All offices",
     status: ["Active", "Planned"].includes(q.get("status") || "")
       ? q.get("status")!
@@ -694,7 +701,7 @@ function readRoute() {
       ? q.get("project")!
       : "",
     scopeProject: bundle.projects.some((p) => p.id === q.get("scope-project")) ? q.get("scope-project")! : "",
-    sample: q.get("sample") === "defects" ? "defects" : "canonical",
+    sample: OPTIONAL_WORKSPACES_ENABLED && q.get("sample") === "defects" ? "defects" : "canonical",
   };
 }
 export function App() {
@@ -705,6 +712,9 @@ export function App() {
   const scopedBundle = prepared.data as typeof sourceBundle;
   const bundle = scopedBundle;
   const [view, setView] = useState<View>(initial.view);
+  const [riskMode, setRiskMode] = useState(initial.riskMode);
+  const [deliverableCut, setDeliverableCut] = useState(initial.deliverableCut);
+  const workspaceView = view === "Risks" && riskMode === "scenarios" ? "Risk Scenarios" : view;
   const [program, setProgram] = useState(initial.program);
   const [office, setOffice] = useState(initial.office);
   const [status, setStatus] = useState(initial.status);
@@ -722,6 +732,8 @@ export function App() {
   useEffect(() => {
     const q = new URLSearchParams();
     q.set("view", view.toLowerCase().replaceAll(" ", "-"));
+    if (view === "Risks" && riskMode === "scenarios") q.set("risk-view", "scenarios");
+    if (deliverableCut) q.set("deliverable-cut", deliverableCut);
     if (program !== "All programs") q.set("program", program);
     if (office !== "All offices") q.set("office", office);
     if (status !== "All statuses") q.set("status", status);
@@ -729,11 +741,13 @@ export function App() {
     if (scopeProject) q.set("scope-project", scopeProject);
     if (sample === "defects") q.set("sample", sample);
     window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
-  }, [view, program, office, status, projectId, scopeProject, sample]);
+  }, [view, program, office, status, projectId, scopeProject, sample, riskMode, deliverableCut]);
   useEffect(() => {
     const back = () => {
       const s = readRoute();
       setView(s.view);
+      setRiskMode(s.riskMode);
+      setDeliverableCut(s.deliverableCut);
       setProgram(s.program);
       setOffice(s.office);
       setStatus(s.status);
@@ -745,7 +759,8 @@ export function App() {
     return () => window.removeEventListener("popstate", back);
   }, []);
   const navigate = (v: View) => {
-    setView(v);
+    setView(v === "Risk Scenarios" ? "Risks" : !OPTIONAL_WORKSPACES_ENABLED && OPTIONAL_VIEWS.includes(v) ? "Overview" : v);
+    setRiskMode(v === "Risk Scenarios" ? "scenarios" : "register");
     setDetailFilter("All");
     setSeverityFilter("All");
     setCategoryFilter("All");
@@ -762,6 +777,7 @@ export function App() {
     setImpactFilter("All");
     setLocationFilter("");
     setScopeProject("");
+    setDeliverableCut("");
   };
   const projects = useMemo(
     () =>
@@ -866,7 +882,9 @@ export function App() {
       (!locationFilter || p.locationId === locationFilter) &&
       (detailFilter === "All" || p.schedule === detailFilter),
   );
-  const deliverableRows = relatedDeliverables.filter(
+  const cutoff = deliverableCut || bundle.meta.asOf;
+  const historicalDeliverables = deliveryRowsAt(relatedDeliverables, cutoff, bundle.meta.asOf) as typeof relatedDeliverables;
+  const deliverableRows = historicalDeliverables.filter(
     (d) => detailFilter === "All" || d.status === detailFilter,
   );
   const staffRows = related(bundle.staff);
@@ -1033,6 +1051,7 @@ export function App() {
             </div>
           )}
         </div>
+        <button className="coworker-launcher" aria-label="Open Coworker" aria-pressed={view === "Coworker"} onClick={() => navigate("Coworker")}><Icon name="coworker" /><span>Coworker</span><Icon name="arrow" size={14} /></button>
         <button
           className="about-button"
           onClick={() => setAbout(true)}
@@ -1045,11 +1064,11 @@ export function App() {
         </span>
       </header>
       <nav className="nav" aria-label="Main navigation">
-        {views.map((v, i) => (
+        {NAVIGATION_VIEWS.map((v, i) => (
           <button
             key={v}
             aria-current={view === v ? "page" : undefined}
-            onClick={() => navigate(v)}
+            onClick={() => navigate(v as View)}
           >
             {i === 0 && <Icon name="grid" size={15} />} {v}
           </button>
@@ -1069,14 +1088,14 @@ export function App() {
               <Icon name="clock" size={14} /> Snapshot ·{" "}
               {date(bundle.meta.asOf)}
             </span>
-            {!COWORKER_VIEWS.includes(view) && <button
+            {!COWORKER_VIEWS.includes(workspaceView) && <button
               className="button primary"
               disabled={exporting}
               onClick={async () => {
                 setExporting(true);
                 setExportError("");
                 try {
-                  await exportWorkbook(exportRows, view);
+                  await exportWorkbook(exportRows, view === "Deliverables" ? `${view} as of ${cutoff}` : view);
                 } catch {
                   setExportError(
                     "The export could not be created. Please try again.",
@@ -1102,6 +1121,7 @@ export function App() {
               setLocationFilter("");
             },
           )}
+          <label className="filter"><span>Project</span><select aria-label="Project" value={scopeProject} onChange={e => setScopeProject(e.target.value)}><option value="">All projects</option>{sourceBundle.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
           {select(
             "Leading office",
             office,
@@ -1120,15 +1140,16 @@ export function App() {
           <button className="reset" onClick={reset}>
             ↺ Reset filters
           </button>
-          <label className="filter"><span>Project</span><select aria-label="Project" value={scopeProject} onChange={e => setScopeProject(e.target.value)}><option value="">All projects</option>{sourceBundle.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+
           <span className="scope-count">
             {projects.length} projects in scope
           </span>
         </div>
-        <CoworkerWorkspace view={view} data={{ ...prepared.data, projects, ...Object.fromEntries(["deliverables", "risks", "plans", "staff", "financials", "funding", "observations"].map(k => [k, prepared.data[k].filter((r: { projectId: string }) => ids.has(r.projectId))])), qualityFindings: prepared.findings.filter((f: { projectId: string }) => ids.has(f.projectId) || !sourceBundle.projects.some(p => p.id === f.projectId)) }} filters={{ program, office, status, project: scopeProject }} sample={sample} setSample={setSample} navigate={navigate} openProject={openProject} />
+        {view === "Risks" && <div className="risk-view-toggle" role="group" aria-label="Risks view"><button aria-pressed={riskMode === "register"} onClick={() => setRiskMode("register")}>Risk register</button><button aria-pressed={riskMode === "scenarios"} onClick={() => setRiskMode("scenarios")}>Risk scenarios</button></div>}
+        <CoworkerWorkspace view={workspaceView} data={{ ...prepared.data, projects, ...Object.fromEntries(["deliverables", "risks", "plans", "staff", "financials", "funding", "observations"].map(k => [k, prepared.data[k].filter((r: { projectId: string }) => ids.has(r.projectId))])), qualityFindings: prepared.findings.filter((f: { projectId: string }) => ids.has(f.projectId) || !sourceBundle.projects.some(p => p.id === f.projectId)) }} filters={{ program, office, status, project: scopeProject }} sample={sample} setSample={setSample} navigate={navigate} openProject={openProject} />
         {view === "Overview" && (
           <>
-            <div className="kpi-grid">
+            <div className="kpi-grid overview-kpis">
               <Kpi
                 accent
                 label="Active projects"
@@ -1286,11 +1307,10 @@ export function App() {
                 </button>
               )}
             </div>
-            <Scatter
-              projects={projectRows}
-              mode="progress"
-              onOpen={openProject}
-            />
+            <div className="chart-grid projects-charts">
+              <Scatter projects={projectRows} mode="progress" onOpen={openProject} />
+              <ProjectBudget projects={projectRows} programs={bundle.programs} onSelect={(name, band) => { setProgram(name); setLocationFilter(""); if (band === "Planned") { setStatus("Planned"); setDetailFilter("All"); } else setDetailFilter(band); }} />
+            </div>
             <Table
               title="Project directory"
               rows={projectRows}
@@ -1301,14 +1321,6 @@ export function App() {
         )}
         {view === "Deliverables" && (
           <>
-            <div className="subfilters">
-              {select(
-                "Deliverable status",
-                detailFilter,
-                ["All", "Complete", "In progress", "Scheduled", "Overdue"],
-                setDetailFilter,
-              )}
-            </div>
             <div className="kpi-grid">
               <Kpi
                 label="Deliverables"
@@ -1327,7 +1339,7 @@ export function App() {
                 value={
                   deliverableRows.filter((d) => d.status === "Overdue").length
                 }
-                detail={`Due before ${date(bundle.meta.asOf)}`}
+                detail={`Due before ${date(cutoff)}`}
               />
               <Kpi
                 label="Average completion"
@@ -1335,20 +1347,32 @@ export function App() {
                 detail="Equal weight per deliverable"
               />
             </div>
+            <div className="delivery-cut-summary" role="status">{deliverableCut ? `Quarter-end cut: ${date(cutoff)} · ${cutoff > bundle.meta.asOf ? "Synthetic simulation" : "Synthetic history"}` : `Current snapshot: ${date(cutoff)}`} {deliverableCut && <button className="text-link" onClick={() => { setDeliverableCut(""); setDetailFilter("All"); }}>Return to current snapshot ×</button>}</div>
+            <div className="subfilters">
+              {select(
+                "Deliverable status",
+                detailFilter,
+                ["All", "Complete", "In progress", "Scheduled", "Overdue"],
+                setDetailFilter,
+              )}
+            </div>
             <div className="chart-grid">
               <Bars
                 title="Deliverables by status"
                 subtitle="Select a bar to filter the view"
+                exportContext={`Selected cutoff: ${cutoff} | ${cutoff > bundle.meta.asOf ? 'Synthetic simulation' : cutoff === bundle.meta.asOf ? 'Current snapshot' : 'Synthetic history'} | Status: ${detailFilter}`}
                 entries={groups(deliverableRows, "status")}
                 onSelect={setDetailFilter}
               />
               <Bars
                 title="Deliverables by program"
                 subtitle="Distribution within the current filters"
+                exportContext={`Selected cutoff: ${cutoff} | ${cutoff > bundle.meta.asOf ? 'Synthetic simulation' : cutoff === bundle.meta.asOf ? 'Current snapshot' : 'Synthetic history'} | Status: ${detailFilter}`}
                 entries={byProgram(deliverableRows)}
                 onSelect={setProgram}
               />
             </div>
+            <DeliveryRibbon records={relatedDeliverables} snapshot={bundle.meta.asOf} selectedDate={deliverableCut} selectedStatus={detailFilter} onSelect={(cut, state) => { setDeliverableCut(cut); setDetailFilter(state); }} />
             <Table
               title="Deliverable register"
               rows={deliverableRows}
@@ -1413,7 +1437,7 @@ export function App() {
         )}
         {view === "Financials" && (
           <>
-            <div className="kpi-grid">
+            <div className="kpi-grid financial-kpis">
               <Kpi
                 label="Budget"
                 value={money(metrics.budget)}
@@ -1557,11 +1581,11 @@ export function App() {
             />
           </>
         )}
-        {(view === "Risks" || view === "Issues") && (
+        {(view === "Issues" || (view === "Risks" && riskMode === "register")) && (
           <>
             <div className="subfilters">
               {select(
-                "Record status",
+                `${view} status`,
                 detailFilter,
                 ["All", "Open", "Monitoring", "Closed"],
                 setDetailFilter,
@@ -1662,11 +1686,12 @@ export function App() {
             >
               Ivan Morales · GitHub ↗
             </a>
-            <button
+            <span className="footer-return-actions"><button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
-              Back to top ↑
+              Back to Top ↑
             </button>
+            {view !== "Overview" && <button onClick={() => { navigate("Overview"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Back to Overview ↗</button>}</span>
           </div>
         </footer>
       </main>

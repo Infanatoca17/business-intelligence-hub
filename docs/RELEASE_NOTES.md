@@ -1,3 +1,24 @@
+# Atlas Business Intelligence Hub — v1.2.0 UI refresh
+
+Prepared 6 October 2026 from the previously delivered v1.1.1 Coworker source. New branch: **atlas_ui_refresh**. Product/organization/assistant identities remain Atlas Business Intelligence Hub / Atlas Impact Network / Coworker.
+
+- Centered eight-tab navigation; Data Quality, Executive Brief and Methodology disabled in the UI with code retained. Coworker has a highlighted header entry.
+- Reordered global filters and removed Hub from leading-office business labels, with old frontend URL compatibility.
+- Embedded Risk Scenarios toggle within Risks; conditional Risks/Issues status labels; entire baseline matrix section hidden.
+- Vertical bars throughout; PNG-only chart download; Back to Overview footer navigation.
+- Six Overview/five Financials desktop KPI cards; pale straw middle exposure band; equal-width Projects progress and approved-budget allocation charts.
+- Quarterly Deliverables ribbon with date/status filtering and matching tables/workbooks. Synthetic event dates added; future cuts labelled simulations. Current snapshot and financial/risk calculations unchanged.
+- Removed Coworker's readiness strip and separate Sources section while retaining compact citations and all local model controls. Python source/default 8765 port unchanged; LM Studio remains configured at 1234.
+- Updated README, data contract, methodology, local AI guide, walkthrough, validation and incremental branch-update instructions.
+
+Validation: **22 Node + 26 React + 11 Python = 59 executed tests passed**, types/build/static audit passed. **12 browser tests supplied but not executed here**; local/CI visual validation and real new-version Qwen inference remain. The single workflow validates this branch/PR and publishes main only after checks. No remote changes were made.
+
+The full ZIP is a reproducible source checkpoint. The smaller UI Update package changes only the affected files and is checked against v1.1.1. Preserve personal modifications when patch context differs.
+
+---
+
+## Historical v1.1.1 release record
+
 # Atlas Business Intelligence Hub v1.1.1
 
 Prepared 5 October 2026 for `atlas_coworker_integration`, using the uploaded branch ZIP as the source baseline. The fictional organization remains **Atlas Impact Network** and the assistant remains **Coworker**.
