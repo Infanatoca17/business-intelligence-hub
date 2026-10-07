@@ -1,7 +1,7 @@
 name: Validate and publish Atlas
 on:
   push:
-    branches: [main, atlas_coworker_integration]
+    branches: [main, atlas_coworker_integration, atlas_ui_refresh]
   pull_request:
     branches: [main]
   workflow_dispatch:

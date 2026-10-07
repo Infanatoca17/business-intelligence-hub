@@ -1,5 +1,13 @@
 import bundle from "./data/atlas-bundle.json";
-import type { SheetData } from "write-excel-file/browser";
+import type { SheetData, Options } from "write-excel-file/browser";
+import {
+  findElement,
+  getCellAddress,
+  getOrderOfSiblings,
+  getSelfClosingTagMarkup,
+  insertElementMarkupAccordingToOrderOfSiblings,
+  replaceElement,
+} from "write-excel-file/utility";
 
 export const exportNote = `${bundle.meta.product} | ${bundle.meta.name} | Synthetic demonstration data | ${bundle.meta.asOf}`;
 function download(blob: Blob, filename: string) {
@@ -19,7 +27,7 @@ export function createWorkbookSheets(
     keys.map((key) => ({
       value: key,
       fontWeight: "bold",
-      color: "#FFFFFF",
+      textColor: "#FFFFFF",
       backgroundColor: "#173D36",
     })),
   ];
@@ -42,6 +50,10 @@ export function createWorkbookSheets(
     ["Data", "All business records and people are fictional."],
     ["Disclaimer", { value: bundle.meta.disclaimer, wrap: true, height: 45 }],
   ];
+  if (rows.length && rows[0].cutoffDate) {
+    about.push(["Selected cutoff", String(rows[0].cutoffDate)]);
+    about.push(["History mode", String(rows[0].historyMode)]);
+  }
   return [
     {
       sheet: "Data",
@@ -54,18 +66,46 @@ export function createWorkbookSheets(
     { sheet: "About", data: about, columns: [{ width: 28 }, { width: 110 }] },
   ];
 }
+export function createWorkbookOptions(
+  sheets: ReturnType<typeof createWorkbookSheets>,
+) {
+  // The Data sheet is a filterable register; About remains a provenance sheet.
+  const data = sheets[0].data;
+  const ref = `A1:${getCellAddress(data.length - 1, data[0].length - 1)}`;
+  return {
+    fontFamily: "Calibri",
+    fontSize: 11,
+    features: [{
+      files: {
+        transform: {
+          "xl/worksheets/sheet{id}.xml": {
+            transform(xml, _options, { sheetIndex }) {
+              if (sheetIndex !== 0) return xml;
+              const filter = getSelfClosingTagMarkup("autoFilter", { ref });
+              const existing = findElement(xml, "autoFilter");
+              return existing ? replaceElement(xml, existing, filter) :
+                insertElementMarkupAccordingToOrderOfSiblings(
+                  xml, filter,
+                  getOrderOfSiblings("xl/worksheets/sheet{id}.xml", "worksheet")!,
+                  "worksheet",
+                );
+            },
+          },
+        },
+      },
+    }],
+  } satisfies Options<unknown>;
+}
 export async function exportWorkbook(
   rows: Record<string, unknown>[],
   name: string,
 ) {
   const { default: writeExcelFile } = await import("write-excel-file/browser");
-  const blob = await writeExcelFile(createWorkbookSheets(rows, name), {
-    fontFamily: "Calibri",
-    fontSize: 11,
-  }).toBlob();
+  const sheets = createWorkbookSheets(rows, name);
+  const blob = await writeExcelFile(sheets, createWorkbookOptions(sheets)).toBlob();
   download(blob, `Atlas_${name.replaceAll(" ", "_")}.xlsx`);
 }
-export function exportChart(id: string, title: string, type: "svg" | "png") {
+export function exportChart(id: string, title: string, context?: string) {
   const source = document.getElementById(id) as SVGSVGElement | null;
   if (!source) return;
   const svg = source.cloneNode(true) as SVGSVGElement;
@@ -88,16 +128,13 @@ export function exportChart(id: string, title: string, type: "svg" | "png") {
   };
   addText(title, height + 20, 13);
   addText(exportNote, height + 38, 9);
+  if (context) addText(context, height + 53, 9);
   const lines = bundle.meta.disclaimer.match(/.{1,91}(?:\s|$)/g) || [
     bundle.meta.disclaimer,
   ];
-  lines.forEach((line, i) => addText(line, height + 53 + i * 11, 8));
+  lines.forEach((line, i) => addText(line, height + (context ? 67 : 53) + i * 11, 8));
   const raw = new XMLSerializer().serializeToString(svg);
   const filename = `Atlas_${title.replaceAll(" ", "_")}`;
-  if (type === "svg") {
-    download(new Blob([raw], { type: "image/svg+xml" }), `${filename}.svg`);
-    return;
-  }
   const img = new Image();
   const url = URL.createObjectURL(new Blob([raw], { type: "image/svg+xml" }));
   img.onload = () => {

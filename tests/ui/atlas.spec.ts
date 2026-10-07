@@ -141,23 +141,19 @@ test("Workbook and chart exports contain Atlas branding and synthetic values", a
   expect(Object.values(workbook).map(strFromU8).join("")).toContain(
     "This is a demo with dummy data",
   );
-  const svgDownload = page.waitForEvent("download");
-  await page
-    .getByRole("button", {
-      name: "Download Project exposure & progress as SVG",
-    })
-    .click();
-  const svgFile = await svgDownload;
-  const svg = readFileSync((await svgFile.path())!, "utf8");
-  expect(svg).toContain("Synthetic demonstration data");
-  expect(svg).toContain("demo with dummy data");
+  await expect(page.getByRole("button", { name: /as SVG/ })).toHaveCount(0);
   const pngDownload = page.waitForEvent("download");
   await page
     .getByRole("button", {
       name: "Download Project exposure & progress as PNG",
     })
     .click();
-  expect((await pngDownload).suggestedFilename()).toMatch(/\.png$/);
+  const pngFile = await pngDownload;
+  expect(pngFile.suggestedFilename()).toMatch(/\.png$/);
+  const png = readFileSync((await pngFile.path())!);
+  expect(png.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+  expect(png.readUInt32BE(16)).toBe(1180);
+  expect(png.readUInt32BE(20)).toBe(860);
 });
 test("Narrow screens and keyboard interaction work", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

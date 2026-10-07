@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs';
 import { unzipSync, strFromU8 } from 'fflate';
 const raw = JSON.parse(readFileSync(new URL('../../src/data/atlas-bundle.json', import.meta.url), 'utf8'));
 import { prepareSample, selectScope, coworkerFacts, dollars, guidedAnswer, scenario } from '../../src/coworker-engine.mjs';
-const nav = async (page: any, name: string) => page.getByRole('navigation').getByRole('button', { name, exact: true }).click();
+const nav = async (page: any, name: string) => { if (name === 'Coworker') await page.getByRole('button', { name: 'Open Coworker' }).click(); else if (name === 'Risk Scenarios') { await page.getByRole('navigation').getByRole('button', { name: 'Risks', exact: true }).click(); await page.getByRole('button', { name: 'Risk scenarios', exact: true }).click(); } else await page.getByRole('navigation').getByRole('button', { name, exact: true }).click(); };
 
-test('Coworker reporting, data review and exports reconcile with the dashboard', async ({ page }) => {
+test('Coworker reporting, citations and XLSX exports reconcile with the dashboard', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('./');
   await page.getByLabel('Program', { exact: true }).selectOption('Health');
@@ -15,18 +15,9 @@ test('Coworker reporting, data review and exports reconcile with the dashboard',
   await expect(page.getByTestId('cw-progress')).toHaveText(`${m.actual.toFixed(1)}%`);
   await expect(page.getByTestId('cw-spending')).toHaveText(dollars(m.spent));
   await page.screenshot({ path: 'test-results/coworker-desktop.png', fullPage: true });
-  await page.getByRole('button', { name: 'CALC-PORTFOLIO · Verified scope figures' }).click();
+  await page.getByRole('button', { name: 'CALC-PORTFOLIO', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Evidence source' })).toContainText('"projects": 12');
   await page.keyboard.press('Escape');
-  await nav(page, 'Executive Brief');
-  await page.getByRole('button', { name: 'Mark scope reviewed', exact: true }).click();
-  const briefPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Download reviewed brief' }).click();
-  const briefFile = await briefPromise;
-  const markdown = readFileSync((await briefFile.path())!, 'utf8');
-  expect(markdown).toContain(dollars(m.spent));
-  expect(markdown).toContain(`${m.actual.toFixed(1)}%`);
-  expect(markdown).toContain('Reviewed in current browser session');
   const workbookPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export current view', exact: true }).click();
   const workbookFile = await workbookPromise;
@@ -34,19 +25,12 @@ test('Coworker reporting, data review and exports reconcile with the dashboard',
   const xml = strFromU8(zip['xl/worksheets/sheet1.xml']);
   expect(xml).toContain(`<v>${m.spent}</v>`);
   expect(xml).toContain(`<v>${m.actual}</v>`);
-  await page.getByLabel('Executive narrative').fill('Human edit: review delivery priorities.');
-  await expect(page.getByRole('button', { name: 'Download draft brief' })).toBeVisible();
   expect(errors).toEqual([]);
 });
 
-test('Defect sample, corrected sample and common project scope behave consistently', async ({ page }) => {
-  await page.goto('./'); await nav(page, 'Data Quality');
-  await page.getByRole('button', { name: 'Load defect sample' }).click();
-  await expect(page.getByRole('table', { name: 'Quality findings' }).locator('tbody tr')).toHaveCount(8);
-  await nav(page, 'Executive Brief');
-  await expect(page.getByRole('button', { name: 'Mark scope reviewed' })).toBeDisabled();
-  await nav(page, 'Data Quality'); await page.getByRole('button', { name: 'Load corrected sample' }).click();
-  await expect(page.getByText('No quality findings in this scope.')).toBeVisible();
+test('Hidden workspace routes and common project scope behave consistently', async ({ page }) => {
+  await page.goto('./?view=data-quality');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('The bigger picture.');
   await page.getByLabel('Project', { exact: true }).selectOption('ATL-P001');
   await nav(page, 'Coworker');
   await expect(page.getByText('1 projects in scope')).toBeVisible();
@@ -57,7 +41,7 @@ test('Defect sample, corrected sample and common project scope behave consistent
   await page.reload(); await expect(page.getByLabel('Project', { exact: true })).toHaveValue('ATL-P001');
 });
 
-test('Scenario sliders, threat matrix, CSV and zero-progress projection limits work', async ({ page }) => {
+test('Embedded scenario sliders, CSV and zero-progress projection limits work', async ({ page }) => {
   await page.goto('./'); await nav(page, 'Risk Scenarios');
   const baseline = await page.getByTestId('cw-gap').textContent();
   for (const [name, steps] of [['Funding reduction', 4], ['Capacity reduction', 5], ['Risk probability uplift', 10]] as const) {
@@ -87,10 +71,7 @@ test('Scenario sliders, threat matrix, CSV and zero-progress projection limits w
   expect(xml).toContain(`<v>${sim.rows[0].expectedLoss}</v>`);
   expect(xml).toContain(`<v>${sim.rows[0].fundingGap}</v>`);
   expect(strFromU8(workbookFiles['xl/sharedStrings.xml'])).toContain('fundingReductionPct');
-  const matrix = page.getByRole('table', { name: 'Threat matrix' });
-  const cell = matrix.locator('button:enabled').first();
-  const count = Number(await cell.textContent()); await cell.click();
-  await expect(page.getByRole('table', { name: 'Scenario threat register' }).locator('tbody tr')).toHaveCount(count);
+  await expect(page.getByRole('table', { name: 'Threat matrix' })).toHaveCount(0);
   await page.getByLabel('Project status', { exact: true }).selectOption('Planned');
   await expect(page.getByText('0/4 projects have a cost projection.', { exact: false })).toBeVisible();
   await expect(page.getByRole('table', { name: 'Project scenario results' })).toContainText('Not projected');
@@ -98,7 +79,7 @@ test('Scenario sliders, threat matrix, CSV and zero-progress projection limits w
   await page.screenshot({ path: 'test-results/coworker-scenario.png', fullPage: true });
 });
 
-test('LM Studio mode is explicit and its model narrative reaches the reviewed brief', async ({ page }) => {
+test('LM Studio mode is explicit and its narrative reaches Coworker', async ({ page }) => {
   await page.route('**/api/status', route => route.fulfill({ json: { local_server: true, provider: 'LM Studio', reachable: true, model_available: true, model: 'mock-browser-model' } }));
   const answer = guidedAnswer(prepareSample(raw).data, 'Draft the quarterly brief');
   await page.route('**/api/assistant', route => route.fulfill({ json: { ...answer, mode: 'local_ai', summary: 'A mocked local model narrative for integration testing.', note: 'Mock inference; human review required.' } }));
@@ -106,15 +87,15 @@ test('LM Studio mode is explicit and its model narrative reaches the reviewed br
   await page.getByLabel('Use local AI').check();
   await page.getByRole('button', { name: 'Ask Coworker', exact: true }).click();
   await expect(page.getByText('Local AI · LM Studio', { exact: true })).toBeVisible();
-  await nav(page, 'Executive Brief'); await page.getByRole('button', { name: 'Draft with Coworker' }).click();
-  await expect(page.getByLabel('Executive narrative')).toHaveValue('A mocked local model narrative for integration testing.');
+  await expect(page.getByText('A mocked local model narrative for integration testing.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Local model connection' })).toBeVisible();
 });
 
 test('Mobile Coworker screens remain readable without page overflow', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 }); await page.goto('./');
-  for (const name of ['Coworker', 'Data Quality', 'Risk Scenarios', 'Executive Brief', 'Methodology']) {
+  for (const name of ['Coworker', 'Risk Scenarios', 'Deliverables']) {
     await nav(page, name);
-    await expect(page.getByRole('heading', { level: 1, name, exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: name === 'Risk Scenarios' ? 'Risks' : name, exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   }
   await nav(page, 'Coworker'); await page.screenshot({ path: 'test-results/coworker-mobile.png', fullPage: true });

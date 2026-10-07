@@ -1,131 +1,98 @@
-# Run Atlas Coworker locally with LM Studio
+# Keep Coworker running locally with LM Studio — v1.2.0
 
-This guide applies to Atlas Business Intelligence Hub v1.1.1 in `Infanatoca17/business-intelligence-hub`. Use your existing `atlas_coworker_integration` branch. All business data is fictional. The local service is `atlas_coworker`; Ollama is not required.
+You already validated **Qwen2.5-7B-Instruct-GGUF, Q4_K_M**, server model ID **qwen2.5-7b-instruct**, and LM Studio at **http://127.0.0.1:1234/v1**. This UI update retains that setup and the Python application/API on **8765**. There is no need to download the model again or change providers.
 
-## 1. Prepare the project
+## 1. Keep the LM Studio server available
 
-Open the existing repository folder in VS Code. In a PowerShell terminal, run:
-
-```powershell
-git branch --show-current
-node --version
-python --version
-npm.cmd ci
-npm.cmd run build
-```
-
-The branch should be `atlas_coworker_integration`. Atlas supports Node 22.14+ within major 22 or Node 24, and Python 3.10+. The Python service uses the standard library and invokes the shared JavaScript calculation engine through Node. No Python package installation is needed.
-
-## 2. Install LM Studio and select a model
-
-Download LM Studio from [lmstudio.ai](https://lmstudio.ai/). In its model discovery/download view, search for **Qwen2.5-7B-Instruct-GGUF**, preferably the official [Qwen repository](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF), and select the **Q4_K_M** quantization when available.
-
-This is a practical starting candidate because its model card describes instruction following and JSON/structured-data capability. It has not been benchmarked on Atlas in this delivery. Confirm LM Studio's memory estimate before downloading/loading: the model, context cache and application all need memory, and inference speed depends on your CPU/GPU. Hardware capacity was not supplied, so this is not a guaranteed fit. If it does not fit, choose a smaller instruction model that supports structured output and run the evaluation below; smaller models may be less reliable.
-
-The project does not include model weights or automatically download a model. Model files stay in LM Studio's model storage, outside Git.
-
-## 3. Load the model and start its local server
-
-1. Open LM Studio's **Developer** view.
-2. Load the downloaded instruction model.
-3. Start with an **8192-token context window**. This is an Atlas starting setting, not a universal model requirement; reduce it only if needed and check that evidence still fits. Increase it if the server reports a context limit.
-4. Start the server, using port **1234** and localhost access.
-5. Keep LM Studio running while using Atlas. Local inference can operate offline after the runtime and model have been downloaded.
-
-LM Studio offers a **Start server** control in Developer. The adapter uses its OpenAI-compatible `/v1/chat/completions` endpoint and JSON-schema response format; it does not contact OpenAI.
-
-## 4. Get the exact model ID
+Keep the **Local Model API** screen you already used open, load the Qwen instruction model and enable its API server on port **1234**. Depending on the LM Studio version, server controls may be shown in the Developer view instead. The important check is the endpoint response below, not the name of the navigation item. Keep the server bound to localhost. Retain your validated context/runtime settings; 8192 tokens is a starting context if setting up a new instance, not a requirement to overwrite a working one.
 
 In PowerShell:
 
 ```powershell
-$models = Invoke-RestMethod http://127.0.0.1:1234/v1/models
+$models = Invoke-RestMethod -Uri "http://127.0.0.1:1234/v1/models"
 $models.data | Select-Object id
 ```
 
-Copy the exact ID displayed by the server. Do not assume it matches the download filename or model title. Model listing may also include downloaded models available for just-in-time loading.
+The list must include **qwen2.5-7b-instruct**. It can also include an embedding model. Copy only the instruction model's single ID into `LM_STUDIO_MODEL`; do not copy the entire multi-line model list. Listing establishes connectivity and model visibility, not successful generation.
 
-If you enabled LM Studio authentication, use your token locally:
+If you previously enabled authentication, retain your server token in this terminal's environment and use it when listing models. Never place it in React or Git:
 
 ```powershell
 $env:LM_STUDIO_API_KEY = "YOUR_LOCAL_TOKEN"
 $headers = @{ Authorization = "Bearer $env:LM_STUDIO_API_KEY" }
-$models = Invoke-RestMethod http://127.0.0.1:1234/v1/models -Headers $headers
-$models.data | Select-Object id
+$models = Invoke-RestMethod -Uri "http://127.0.0.1:1234/v1/models" -Headers $headers
 ```
 
-Authentication is optional for the default localhost setup. Keep any token out of source files, screenshots, commits and frontend configuration.
+## 2. Rebuild and check the service
 
-## 5. Configure Atlas in the same PowerShell terminal
+Open the existing repository's updated **atlas_ui_refresh** branch. Stop an old Python instance with Ctrl+C. In the terminal you will use for Python:
 
 ```powershell
-$env:LM_STUDIO_MODEL = "PASTE_THE_EXACT_SERVER_MODEL_ID"
+npm.cmd ci
+npm.cmd run build
+$env:LM_STUDIO_MODEL = "qwen2.5-7b-instruct"
 $env:LM_STUDIO_BASE_URL = "http://127.0.0.1:1234/v1"
 $env:LM_STUDIO_TIMEOUT = "120"
 python -m atlas_coworker check
 ```
 
-Expected: `reachable: true` and `model_available: true`. This checks connectivity/model listing, not inference. These variables affect the Python process started from this terminal. An `.env` file is not automatically loaded. To use another port, adjust `LM_STUDIO_BASE_URL` and LM Studio together. The adapter accepts localhost HTTP addresses ending in `/v1`.
+Expected: `local_server: true`, `reachable: true`, `model_available: true`, with the exact Qwen ID. These environment variables apply to processes launched from this terminal. A new terminal needs them again; an `.env` file is not automatically loaded. The Python service uses the standard library and the shared Node calculation engine; no Python package installation is needed.
 
-## 6. Verify a real inference
+## 3. Verify a new-version inference
 
 ```powershell
 python -m atlas_coworker evaluate --question "Draft the quarterly brief"
 ```
 
-Pass: output has `"mode": "local_ai"`, a narrative and valid evidence IDs; the command exits successfully. A guided fallback is not a passing inference check. The model may take longer on its first load; the configurable timeout is supported from 5 to 300 seconds.
+Expected: `mode: local_ai`, narrative text and valid evidence IDs. A guided fallback is not a passing inference check. The first inference can load/warm the model; timeout supports 5–300 seconds. The previously validated v1.1.1 model must still be checked against this changed data/context bundle.
 
-## 7. Run the integrated application
+## 4. Serve the frontend and assistant API together
 
 ```powershell
-python -m atlas_coworker serve
+python -m atlas_coworker serve --port 8765
 ```
 
-Open **http://127.0.0.1:8765/business-intelligence-hub/**. Keep this terminal open. If port 8765 is busy, use `python -m atlas_coworker serve --port 8766` and open the corresponding URL.
+Open **[http://127.0.0.1:8765/business-intelligence-hub/](http://127.0.0.1:8765/business-intelligence-hub/)** and keep Python and LM Studio running.
 
-1. Open **Coworker**.
-2. Click **Check connection** after starting or changing the LM Studio model.
+1. Click the green **Coworker** launcher beside Search in the header.
+2. In **Local model connection**, click **Check connection**.
 3. Enable **Use local AI**.
-4. Ask **Draft the quarterly brief**.
-5. Confirm the response says **Local AI · LM Studio**.
-6. Inspect citations and compare every number with the verified fact cards.
-7. Open **Executive Brief** and select **Draft with Coworker**. The AI toggle persists across these views.
-8. Review/edit the narrative before marking the scope reviewed.
+4. Click **Draft the quarterly brief**, then **Ask Coworker** if needed.
+5. Confirm **Local AI · LM Studio**, not Guided demo or Guided fallback.
+6. Inspect inline citations such as **CALC-PORTFOLIO** and compare all narrative numbers with the verified cards and XLSX.
 
-The Python server serves the built React app and API from one origin. The Vite development/preview server runs the guided demo; it is not the documented local AI entry point. After editing frontend code, rebuild and refresh the Python-served page. Press Ctrl+C to stop Python.
+The readiness banner and separate Sources panel have been removed; connection checks, the AI toggle, request handling and evidence dialogs remain. This version does not expose the optional Executive Brief workspace. The local model drafts text and cannot replace calculated facts, repair source records or approve a report.
 
-## 8. Evaluate the model's usefulness
+## 5. Recheck scope and fallback
 
-| Prompt / condition | Expected behavior |
+| Check | Expected result |
 |---|---|
-| Draft the quarterly brief | Same scope, delivery, spending, exposure and baseline losses as the verified cards |
-| What blocks review? with the defect sample | Identify critical findings and missing current observations; do not claim records were repaired |
-| Which threats need follow-up? | Refer to supplied risk records/actions and valid source IDs |
-| What changes in this scenario? after 20% / 25% / 50% | Use the current scenario figures and distinguish them from baseline |
-| What is the weather? | Guided refusal; no model call for an unsupported topic |
-| Stop LM Studio after enabling AI, then ask | Clearly labelled guided fallback, with no AI-generated claim |
+| All programs, quarterly brief | 48 projects, 56.0% delivery, $20,617,744 spending and $6,703,756.25 baseline expected consequences |
+| Health, quarterly brief | 12 projects, 58.5% delivery and $5,097,830 spending |
+| Risks → Risk scenarios, change assumptions; then Coworker | Scenario facts use the same retained parameters and global scope |
+| Unsupported prompt such as weather | Guided refusal; no invented portfolio facts |
+| Stop LM Studio, then ask with AI enabled | Clearly labelled fallback; no claim of model-generated success |
 
-Record model ID, quantization, context, hardware, response time, prompt, mode, citation validity and any factual errors. JSON/citation validation cannot establish that every sentence is true. The checked facts are never replaced by a model response.
+Record model ID, quantization, context, hardware, response time and factual errors when evaluating. Structured JSON and valid citation IDs do not prove every generated sentence.
 
 ## Troubleshooting
 
-| Symptom | Check |
+| Symptom | Correction |
 |---|---|
-| `Use local AI` is disabled | Python-served URL, server running, exact model ID, then Check connection |
-| `check` reports unreachable | LM Studio server/port and optional token; a local chat window alone is not an API server |
-| Model not available | Copy an ID from `/v1/models`; load that model |
-| Guided fallback | Run `evaluate`; inspect LM Studio's server logs for load, timeout, context or schema errors |
-| Slow / out of memory | LM Studio memory estimate, context size and model quantization; do not assume GPU acceleration is available |
-| Changed frontend is absent | Run `npm.cmd run build` again and refresh |
-| App opens on GitHub Pages | That URL runs the guided demo; use the localhost URL for local inference |
+| `model_available: false` | Set `$env:LM_STUDIO_MODEL = "qwen2.5-7b-instruct"` on one line, load that model, rerun check and restart Python |
+| No local AI / connection appears inactive | Use the **8765 Python-served URL**; Vite preview on 4173 and Pages do not serve the assistant API |
+| Environment changed but UI uses the old model | Stop Python, set variables in that same terminal, restart on 8765 |
+| Port 8765 already in use | Close your earlier Atlas Python instance, then restart on 8765; avoid moving to another port |
+| API unreachable | Start LM Studio's server on 1234; check its optional authentication |
+| Guided fallback | Run `evaluate`; inspect model logs for timeout, context or structured-output errors |
+| New UI is absent | Rebuild, restart Python and Ctrl+F5 the local page |
+
+The adapter calls local `/v1/chat/completions` with JSON-schema response format. It does not contact OpenAI. GitHub Pages publishes only the guided static frontend; use localhost for local AI.
 
 ## Official references
 
 - [LM Studio local server](https://lmstudio.ai/docs/developer/core/server)
+- [Server settings](https://lmstudio.ai/docs/developer/core/server/settings)
+- [OpenAI-compatible model listing](https://lmstudio.ai/docs/developer/openai-compat/models)
 - [Structured output](https://lmstudio.ai/docs/developer/openai-compat/structured-output)
-- [Model listing](https://lmstudio.ai/docs/developer/openai-compat/models)
-- [Authentication](https://lmstudio.ai/docs/developer/core/authentication)
-- [Offline operation](https://lmstudio.ai/docs/app/offline)
-- [Qwen2.5-7B-Instruct-GGUF model card](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF)
-
-This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
+- [Qwen model card and license](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF)

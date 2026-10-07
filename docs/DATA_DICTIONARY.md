@@ -1,12 +1,12 @@
-# Synthetic data contract — Atlas Business Intelligence Hub v1.1.1
+# Synthetic data contract — Atlas Business Intelligence Hub v1.2.0
 
-`scripts/generate-data.mjs` deterministically generates `src/data/atlas-bundle.json`. It does not ingest reference archives or organizational reports. Business identifiers use `ATL-` prefixes; people, emails, sites and donors are fictional. The canonical bundle has populated business fields. The defect sample intentionally includes invalid/missing fields at runtime for the quality walkthrough. Scenario nulls explicitly mean a projection is unavailable.
+`scripts/generate-data.mjs` deterministically generates `src/data/atlas-bundle.json`. It does not ingest reference archives or organizational reports. Business identifiers use `ATL-` prefixes; people, emails, sites and donors are fictional. The canonical bundle has populated business fields. The retained defect sample intentionally includes invalid/missing fields for engine/component tests; its UI is disabled in this release. Scenario nulls explicitly mean a projection is unavailable.
 
 | Dataset | Rows | Key | Relationships and contents |
 |---|---:|---|---|
 | programs | 4 | id | Program name, color, description and three teams |
 | projects | 48 | id | programId, locationId, planId; owner, dates, objectives, status, deliverable-derived progress, expected progress, exposure, expectedLossUsd |
-| deliverables | 288 | id | projectId; six per project; completion 0–100%, status, assignee, due date, budget |
+| deliverables | 288 | id | projectId; six per project; completion 0–100%, status, assignee, due date, budget; synthetic createdDate, startedDate, completionDate, historyProvenance |
 | plans | 48 | id | projectId; response approach, owner, review dates, status |
 | risks | 144 | id | projectId, planId; 96 risks + 48 issues; kind, impact, likelihood, probability, lossUsd, expectedLossUsd, delayDays, score, owner, response action, deadline |
 | staff | 96 | id | projectId; unique fictional person, role, .example email, FTE, weekly hours |
@@ -16,9 +16,24 @@
 | observations | 576 | id | projectId + period unique; month YYYY-MM, observedAt, reportedAt, six deliverableCompletions, derived progress, expected, cumulative spent |
 | documents | 6 | id | title and synthetic policy/evidence text |
 | assumptions | object | — | scheduleTolerance 7, likelihoodProbabilities, capacityCostFactor 0.30, currency, probability basis |
-| meta | object | — | Official product, short productLabel, fictional organization name, version 1.1.1, asOf 2026-09-22, Q3 2026, dummy-data disclaimer |
+| meta | object | — | Official product, short productLabel, fictional organization name, version 1.2.0, asOf 2026-09-22, Q3 2026, dummy-data disclaimer |
 
 Every canonical downstream project reference resolves. A project has six deliverables, three threats, two staff, one financial record, one response plan and twelve observations. Funding exists for half the projects; an empty funding table means no additional opportunity. Planned projects have zero current progress/spending and are excluded from execution projections.
+
+## Deliverable events and cutoff rows
+
+| Field | Meaning |
+|---|---|
+| `createdDate` | Synthetic creation date, ISO UTC calendar date; may precede project start |
+| `startedDate` | Synthetic execution start, no earlier than creation |
+| `completionDate` | Synthetic completion event; future dates are simulated, not actual delivery records |
+| `historyProvenance` | Explicit synthetic event/simulation notice |
+| `cutoffDate` | Runtime/export field, selected quarter end or the current snapshot |
+| `historyMode` | Runtime/export field: Current snapshot, Synthetic history or Synthetic simulation |
+
+The saved `status` and `completion` continue to describe **2026-09-22**. Historical rows are derived copies; filtering does not mutate the saved bundle. Status values are Scheduled, In progress, Complete and Overdue (the ribbon legend displays In Progress). Creation/start/completion dates are independent synthetic event assumptions, not imported monthly evidence. See [METHODOLOGY.md](METHODOLOGY.md).
+
+Leading office values are **Americas, Europe, Africa, South Asia, East Asia, Oceania**, with no Hub suffix. Old frontend URLs ending in `office=... Hub` are normalized to the corresponding new label.
 
 ## Threat and scenario fields
 

@@ -1,43 +1,37 @@
-# Update the existing Atlas Business Intelligence Hub repository
+# Update the existing repository — v1.2.0 UI refresh
 
-Target: `Infanatoca17/business-intelligence-hub`, branch **`atlas_coworker_integration`**. This v1.1.1 update was built from the supplied `business-intelligence-hub-atlas_coworker_integration.zip` (Atlas v1.0.0 source). It includes the complete Coworker integration and naming changes. It does not replace `.git`, your remote or repository history.
+Repository: `Infanatoca17/business-intelligence-hub`. New branch: **atlas_ui_refresh**. Baseline: the previously delivered v1.1.1 Coworker source. The update patch changes only the listed files; it does not contain `.git`, remote settings, model files or the Python service. Your Python default port remains **8765** and LM Studio remains **1234**.
 
-## 1. Select or rename the integration branch
+## 1. Prepare a clean branch
 
-Extract this update ZIP outside your repository. Open your existing repository in GitHub Desktop and select **atlas_coworker_integration**. Open the repository in VS Code and run in PowerShell:
+Extract **Atlas_Business_Intelligence_Hub_v1.2.0_UI_Update.zip** outside your repository, for example into Downloads. Open your existing repository in VS Code or GitHub Desktop. In its PowerShell terminal:
 
 ```powershell
-git branch --show-current
-git remote -v
 git status --short
+git remote -v
 ```
 
-Confirm the branch and personal repository. Preserve unrelated local changes before applying the patch. If the requested branch already exists, select it; no rename is needed.
-
-If your current branch is an older **integration branch**, rename that local branch while it is checked out:
+Confirm origin is your personal `business-intelligence-hub` repository. If status lists work in progress, first commit it on its appropriate branch or save it using GitHub Desktop's stash option. Continue when status is empty. Do not discard existing changes.
 
 ```powershell
-git branch -m atlas_coworker_integration
+git switch main
+git pull --ff-only origin main
+git switch -c atlas_ui_refresh
+git branch --show-current
 ```
 
-Do not run this rename while on `main`. If you are on main and the integration branch does not yet exist, create it instead:
+Expected branch: `atlas_ui_refresh`. If it already exists because you started this update, use `git switch atlas_ui_refresh` instead of creating it again. This guide assumes main already contains v1.1.1; it is not the original v1.0.0 integration patch.
+
+## 2. Apply only the UI update, once
+
+Use your actual extracted path:
 
 ```powershell
-git switch -c atlas_coworker_integration
-```
-
-These are alternatives, not commands to execute together. Renaming a local branch does not rename/delete its old remote counterpart; the final push explicitly creates/updates the new remote name. An older remote branch can be left untouched.
-
-## 2. Check and apply the update
-
-Set the extracted patch's full path, using your actual folder:
-
-```powershell
-$atlasPatch = "C:\Users\YOUR_USER\Downloads\Atlas_Business_Intelligence_Hub_v1.1.1_Coworker_Update\Atlas_Business_Intelligence_Hub_v1.1.1.patch"
+$atlasPatch = "C:\Users\USER\OneDrive\Descargas\Atlas_Business_Intelligence_Hub_v1.2.0_UI_Update\Atlas_UI_v1.2.0.patch"
 git apply --check $atlasPatch
 ```
 
-A successful check normally prints nothing. Only after it succeeds:
+Success normally prints nothing. Only if that check succeeds:
 
 ```powershell
 git apply $atlasPatch
@@ -45,11 +39,15 @@ git diff --stat
 git status --short
 ```
 
-The patch is checked against the uploaded branch's files. If you have already applied another integration or edited those files, the check may fail: do not force it. Compare with the supplied `project/` source in VS Code, preserve your edits and integrate the corresponding changes. `project/` is a source reference; do not nest it inside the checkout or replace `.git`.
+New files appear as `??` until committed; that is expected. Do not copy `changed-files/` and apply the patch afterwards: those are two alternative update methods. Do not run the same patch twice.
 
-## 3. Validate locally
+If the check says `already exists` or `patch does not apply`, stop before applying it. The working files may already include the update or may differ from the v1.1.1 baseline. Check `git diff` and compare the affected files with the package's `changed-files/` copies in VS Code. These copies contain only the changed/new files at their repository-relative paths. Merge your custom edits into them and copy only the reviewed files to those same paths. In particular, retain any custom local AI fixes you made. Never force the patch, replace `.git`, or overwrite the whole repository to solve a context mismatch.
 
-Use Node 22.14+ within major 22 or Node 24, and Python 3.10+ for the local service:
+The full checkpoint is a reference archive, not a folder to nest inside your checkout. `UPDATE_MANIFEST.json` records old/new SHA-256 hashes for each affected file. `CHANGED_FILES.md` lists the changes.
+
+## 3. Validate the updated frontend and service
+
+Stop any existing Python server with Ctrl+C before rebuilding. Use Node 22.14+ in major 22 or Node 24, and Python 3.10+:
 
 ```powershell
 npm.cmd ci
@@ -57,36 +55,56 @@ npm.cmd run build
 npm.cmd run test:python
 npx.cmd playwright install chromium
 npm.cmd run test:ui
-npm.cmd run preview
 ```
 
-Expected: 16 data/engine, 21 React, 11 Python and 10 browser tests; successful types, production build and audit. Open [127.0.0.1:4173/business-intelligence-hub](http://127.0.0.1:4173/business-intelligence-hub/).
+Expected counts: **22 data/engine, 26 React, 11 Python and 12 browser tests**. Build also checks TypeScript and static output. Browser tests temporarily use Vite preview on 4173; this does not change the integrated service port 8765.
 
-Check the banner **Independent Demo | All Data is Synthetic | About the Data**, the header **Business Intelligence Hub**, the browser title **Atlas Business Intelligence Hub**, and the retained **Atlas Impact Network** organization. Complete [WALKTHROUGH.md](WALKTHROUGH.md). Stop preview with Ctrl+C.
-
-For local inference, follow [LM_STUDIO_SETUP.md](LM_STUDIO_SETUP.md). The preview/Pages website uses guided mode; Python serves the integrated localhost app.
-
-## 4. Commit and push the exact branch name
-
-In GitHub Desktop review the changed/new files and commit on `atlas_coworker_integration`, for example **Integrate Coworker and Business Intelligence Hub branding**. Do not select extracted update copies, model files or environment tokens.
-
-From VS Code's PowerShell terminal, explicitly push and set the new upstream:
+Keep LM Studio's Qwen model and local server running, then use the same terminal for these variables and Python:
 
 ```powershell
-git push --set-upstream origin atlas_coworker_integration
+$env:LM_STUDIO_MODEL = "qwen2.5-7b-instruct"
+$env:LM_STUDIO_BASE_URL = "http://127.0.0.1:1234/v1"
+$env:LM_STUDIO_TIMEOUT = "120"
+python -m atlas_coworker check
+python -m atlas_coworker serve --port 8765
 ```
 
-This pushes the requested name even if a previous integration branch had a different upstream. GitHub Desktop can then use Push origin for future commits. No remote branch deletion is required.
+Open [http://127.0.0.1:8765/business-intelligence-hub/](http://127.0.0.1:8765/business-intelligence-hub/), then complete [WALKTHROUGH.md](WALKTHROUGH.md). If a rebuild appears stale, use Ctrl+F5. Local AI is accessed through **Coworker beside Search → Check connection → Use local AI**. No model download or server migration is required.
 
-## 5. Validate and publish
+## 4. Review, commit and push
 
-1. Open a pull request from `atlas_coworker_integration` to `main`.
-2. Inspect **Validate and publish Atlas** for the new commit. Branch/PR runs validate without publishing.
-3. Review and merge after validation succeeds. The main run validates again before deploying `dist/` to Pages.
-4. Confirm [infanatoca17.github.io/business-intelligence-hub](https://infanatoca17.github.io/business-intelligence-hub/).
+In GitHub Desktop, choose **atlas_ui_refresh** and review Changes. Commit the listed source, configuration, data, documentation and tests. Do not commit the extracted update ZIP, `node_modules`, `dist`, model weights or local credentials. Suggested summary: **Refresh Atlas UI and add quarterly deliverable history**.
 
-Keep one workflow, `.github/workflows/pages.yml`, whose push trigger uses the exact new branch. Settings → Pages should use GitHub Actions. The repository and `/business-intelligence-hub/` Pages base remain unchanged. Python/LM Studio run locally; they are not deployed by Pages.
+Alternatively, after reviewing `git status --short`, use PowerShell:
 
-No remote commit, push, PR, merge or deployment was performed in this delivery. See [VALIDATION.md](VALIDATION.md) for executed checks and model-evaluation limits.
+```powershell
+git add -- .github/workflows/pages.yml AGENTS.md README.md package.json package-lock.json scripts/generate-data.mjs src tests docs
+git diff --cached --stat
+git commit -m "Refresh Atlas UI and add quarterly deliverable history"
+git push --set-upstream origin atlas_ui_refresh
+```
 
-> This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
+The staging command is appropriate for the clean branch created above; review every staged file if you made additional edits. In Desktop, Publish branch / Push origin performs the push. A `nothing to commit` result means there are no staged changes; inspect status instead of reapplying the patch.
+
+## 5. Merge and check GitHub Pages
+
+1. Open [your repository](https://github.com/Infanatoca17/business-intelligence-hub).
+2. Open **Pull requests → New pull request**, with **base: main**, **compare: atlas_ui_refresh**. Review Files changed, then create the PR.
+3. Wait for **Validate and publish Atlas** to pass. Branch and PR runs validate; only main deploys. A failing test must be fixed before merging.
+4. Choose **Merge pull request → Confirm merge** when checks and review are complete. If GitHub reports conflicts, resolve and validate them on the branch first.
+5. In **Actions**, watch the new main run finish both validation and deployment. Preserve the one existing `.github/workflows/pages.yml`; Pages source should remain **GitHub Actions**.
+6. Open [the public Hub](https://infanatoca17.github.io/business-intelligence-hub/) and refresh with Ctrl+F5. Check the new navigation, Coworker launcher, ribbon, embedded scenarios and PNG exports.
+7. Pages runs guided mode. Verify the real local model using the localhost 8765 URL separately; Python and model weights are not published.
+8. Once your working tree is clean, synchronize locally:
+
+```powershell
+git switch main
+git pull --ff-only origin main
+```
+
+No remote commit, PR, merge or deployment was performed while preparing these deliverables.
+
+## Official references
+
+- [Creating a pull request](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request)
+- [Configuring the Pages publishing source](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)

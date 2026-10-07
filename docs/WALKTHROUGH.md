@@ -1,20 +1,22 @@
-# Atlas Business Intelligence Hub v1.1.1 validation walkthrough
+# Atlas Business Intelligence Hub v1.2.0 validation walkthrough
 
-Use the canonical sample and reset global filters before checking the reference figures. The snapshot is **22 September 2026**, period **Q3 2026**, currency **USD**. Current progress comes from deliverables. The public demo uses guided responses; the local Python-served application can use LM Studio.
+Use the canonical data, reset global filters and return Deliverables to the current snapshot before checking portfolio figures. Snapshot: **22 September 2026**, period **Q3 2026**, currency **USD**. Use the Python-served **8765** URL for local AI. A historical Deliverables cut affects that view only; Overview, financial assumptions and Coworker retain the current snapshot.
 
-## 0. Product identity and branch
+## 1. Identity, navigation and responsive layout
 
-- Browser title: **Atlas Business Intelligence Hub**.
-- Product header and footer: **Business Intelligence Hub**.
-- Fictional organization: **Atlas Impact Network**, including the logo and About text.
-- Banner: **Independent Demo | All Data is Synthetic | About the Data**; the final label opens the About dialog.
-- Workbook About sheet and downloaded chart metadata identify the official product and organization separately.
-- Executive Markdown title identifies the official product; organization is a separate line.
-- Current branch and the workflow push trigger: **atlas_coworker_integration**.
+- Browser title: **Atlas Business Intelligence Hub**; organization: **Atlas Impact Network**; product label: **Business Intelligence Hub**.
+- Banner: **Independent Demo | All Data is Synthetic | About the Data**.
+- Eight centered navigation entries: Overview, Projects, Deliverables, Staff, Financials, Funding Pipeline, Risks and Issues.
+- Coworker opens from its green header launcher beside Search, on desktop and mobile.
+- Data Quality, Executive Brief, Methodology and a separate Risk Scenarios entry are absent. Direct optional-workspace URLs return to Overview. Their implementation remains in source.
+- Global filters appear in order **Program → Project → Leading office → Project status**. Office labels are Americas, Europe, Africa, South Asia, East Asia and Oceania.
+- Overview has six cards in one row and Financials five at desktop widths above 1050 px. Narrow widths wrap for readability.
+- All bar charts are vertical. The middle exposure band is pale straw yellow.
+- Scroll to the footer: Back to Overview appears immediately after Back to Top in all workspaces except Overview and preserves global scope.
 
-Check these on desktop and mobile; the banner must remain readable without horizontal page overflow.
+At 390 px, check readable controls, table scrolling inside its panel and no horizontal body overflow. The long ribbon may scroll inside its own panel. At 1440 px, check centered navigation, card rows and the two equal-width Projects charts.
 
-## 1. Baseline figures
+## 2. Reference figures at the current snapshot
 
 | Measure | All programs | Health |
 |---|---:|---:|
@@ -31,75 +33,69 @@ Check these on desktop and mobile; the banner must remain readable without horiz
 | Current observation coverage | 48 / 48 | 12 / 12 |
 | Cost projection coverage | 44 / 48 | 11 / 12 |
 
-Overview uses compact dollar formatting; Coworker uses whole-dollar formatting. Exported numeric cells retain calculation precision. A formatting difference does not change the underlying values. Expected progress and portfolio means include planned projects unless the global status filter excludes them.
+Compact chart/card formatting differs from whole-dollar Coworker formatting. Numeric workbook cells retain precision. Planned projects remain in equal-weight progress averages unless filtered out.
 
-## 2. Delivery and connected scope
+1. Choose Health on Overview and compare the table above.
+2. Choose Review delivery or open Projects and filter Behind schedule.
+3. Open Project 360; progress must equal the mean completion of its six deliverables.
+4. Check the progress tracker and **Budget by delivery status** occupy equal halves. The second chart allocates approved budgets, not losses. Select a visible segment: program/schedule filters and directory must agree.
+5. Reset filters; select **Watershed Futures** in Project. Check the common one-project scope in each view and Coworker. Reset afterwards.
+6. Reload a filtered URL and check program, office, status and project selection persist. An incompatible intersection should show an explicit empty scope.
 
-1. Open Overview, select **Health**, and compare the figures above.
-2. Choose **Review delivery**, or open Projects and filter **Behind schedule**.
-3. Open a project and check that its progress equals the arithmetic mean of its six deliverable completion values, rounded to one decimal.
-4. Check its exposure and baseline expected financial consequences. Financial consequences use the same threats as the index, with explicit probabilities and USD losses.
-5. Close Project 360, open Coworker and confirm Health remains selected.
-6. Set the global **Project** dropdown to **Watershed Futures**. This scopes all views to one project; a conflicting program selection legitimately creates an empty scope. Reset filters afterwards.
-7. Reload a filtered URL and confirm program, office, status and project scope persist.
+## 3. Quarterly deliverable history
 
-Pass: figures and filters agree across views; no NaN/undefined values; empty intersections are explicit.
+Reset global filters, open Deliverables and inspect the ribbon. It spans Q4 2025 through Q4 2027 for all records, covering first creation through last simulated completion. Complete years use four quarter-end cuts.
 
-## 3. Reporting and evidence
+| Cut | Existing deliverables | Scheduled | In progress | Complete | Overdue | Mode |
+|---|---:|---:|---:|---:|---:|---|
+| Q4 2025 — Dec 31 | 120 | 120 | 0 | 0 | 0 | Synthetic history |
+| Q1 2026 — Mar 31 | 264 | 221 | 27 | 16 | 0 | Synthetic history |
+| Q2 2026 — Jun 30 | 264 | 159 | 25 | 79 | 1 | Synthetic history |
+| Q3 2026 — Sep 30 | 288 | 38 | 89 | 139 | 22 | Synthetic simulation |
+| Q4 2026 — Dec 31 | 288 | 0 | 72 | 189 | 27 | Synthetic simulation |
+| Current snapshot — Sep 22 | 288 | 100 | 29 | 139 | 20 | Authoritative current snapshot |
 
-1. Open Coworker and ask **Draft the quarterly brief**.
-2. Compare progress, spending, deliverable counts, exposure and baseline losses with the cards and the reference table.
-3. Open **CALC-PORTFOLIO** and **CALC-SCENARIO** citations. Inspect the exact figures and assumptions.
-4. Ask **Which threats need follow-up?** and inspect a threat citation. Open its Project 360 link.
-5. Ask **What is the weather?** and confirm a refusal rather than invented data.
+1. Select Q2 2026. Expect 264 rows in the register/count (only ten shown per page) and 79 completed deliverables.
+2. Select the Complete ribbon near Q2, or click Complete in the legend after selecting that quarter. Expect 79 rows, all Complete, completion 100%, zero Overdue.
+3. Export current view and Export XLSX from the register. Both must contain exactly the same filtered deliverables, plus `cutoffDate=2026-06-30` and `historyMode=Synthetic history`. The About sheet identifies the cutoff for nonempty rows.
+4. Select Q3 2026. Expect **Synthetic simulation**: September 30 is later than the fixed September 22 snapshot. Do not label that point an actual quarter-end report.
+5. Select Q4 2026, then click its Overdue ribbon near that quarter. Expect 27 rows. The nearest discrete quarter is used, not an arbitrary daily cutoff.
+6. Select Health and repeat a cut. Ribbon counts, cards, vertical charts, table and workbook must reconcile within the selected program.
+7. Reload a cut URL: date persists; the status filter resets to All. Use **Return to current snapshot ×** to restore 288 / 139 / 20 under all programs.
+8. Use Tab and Enter/Space on quarter labels and ribbon areas. Keyboard status selection uses the currently selected quarter or latest past quarter.
+9. Download a Deliverables status/program PNG and check the footer labels the selected cutoff and history/simulation mode. Download the ribbon PNG and check all quarters are included.
 
-Pass: the guided response has the right scope and facts. Local AI, when enabled, must preserve those facts in its narrative and cite supplied sources.
+The synthetic event history is documented in METHODOLOGY.md; it is not reconstructed measured reporting and does not retime Coworker or financial forecasts.
 
-## 4. Quality workflow
+## 4. Coworker and evidence
 
-1. Reset filters, open Data Quality and click **Load defect sample**.
-2. Expect **8 findings: 4 Critical + 4 Warning**, and **46/48** current observations.
-3. Inspect a critical source to see the original record and raw locator. Two invalid current observations are quarantined; an orphan and duplicate are also quarantined.
-4. Open Overview/Coworker. Current delivery progress and spending stay **56.0% / $20,617,744**, because these use deliverables and financial records, not invalid monthly observations.
-5. Open Executive Brief. **Mark scope reviewed** must be disabled.
-6. Return to Data Quality and click **Load corrected sample**. Expect zero findings and 48/48 coverage.
+1. Open Coworker beside Search. Confirm the readiness strip and Sources you can inspect panel are absent; **Local model connection** remains.
+2. Ask **Draft the quarterly brief** in guided mode. Compare its verified cards, narrative numbers and workbook to the current-snapshot reference figures.
+3. Open inline **CALC-PORTFOLIO** / **CALC-SCENARIO** citations; inspect the exact calculated facts. A source button remains in the response without recreating a separate Sources section.
+4. Select Health and repeat; scope must remain shared.
+5. Follow LM_STUDIO_SETUP.md on port 8765. Check connection, enable Use local AI, ask again and expect **Local AI · LM Studio**. Compare every model-written number with verified facts.
+6. Ask an unsupported question such as weather: expect a guided refusal. Stop LM Studio and ask with local AI enabled: expect a clearly labelled fallback.
 
-The switch replaces a deterministic fixture and applies across the application. It is not an automatic repair of arbitrary imported data. Orphan/global blockers remain visible when filtering so they cannot be hidden accidentally.
+A model listing check is not an inference check. Component/Python tests use mock responses. Real Qwen evaluation remains on the owner's computer.
 
-## 5. Risk scenarios
+## 5. Embedded Risks scenarios
 
-1. With all programs and the canonical sample, open Risk Scenarios.
-2. At baseline, verify expected loss **$6,703,756.25** and summed project gaps **$5,963,781.25**.
-3. Set funding reduction **20%**, capacity reduction **25%**, and risk probability uplift **50%**.
-4. Expect available budget **$29,096,000**, expected loss **$7,917,963.125**, summed project gaps **$14,731,954.825**, and added mean delay **61.340625 days**. The UI rounds money to dollars and delay to one decimal.
-5. Exposure stays **51.1/100** because the baseline ordinal scale is unchanged.
-6. Click a populated matrix cell. Confirm only matching baseline impact/likelihood threats appear in the register; clear the matrix filter.
-7. Inspect a project with a large funding gap and open Project 360.
-8. Select Project status **Planned**. All four projects have zero progress, so execution cost and project gap show **Not projected**, with **0/4** projection coverage. A zero summed gap over an empty projection cohort does not establish adequate funding.
-9. Download CSV and XLSX. CSV has one header plus 48 project rows before filtering; CSV/XLSX include the snapshot, currency, sample, scenario percentages and dummy-data notice. Null projections are empty export cells, not zero-valued projections.
+1. Open Risks. The filter must say **Risks status**; open Issues and check **Issues status**.
+2. Return to Risks and select **Risk scenarios** in the toggle. The main Risks tab remains selected; the entire Baseline impact × likelihood section is absent.
+3. At baseline with all programs, expected loss is **$6,703,756.25** and summed project funding gaps **$5,963,781.25**.
+4. Set funding reduction 20%, capacity reduction 25% and risk probability uplift 50%. Expect available budget **$29,096,000**, loss **$7,917,963.125**, summed gaps **$14,731,954.825** and added mean delay **61.340625 days** (UI rounds).
+5. Switch to **Risk register**, then back to Risk scenarios. Parameters and calculations should remain in the current session. Exposure remains **51.1/100**.
+6. Export scenario CSV/XLSX. Under all programs, CSV has one header plus 48 project rows. Summed row funding gaps match the calculated figure; four zero-progress projects have blank/null projections.
+7. Select Planned project status. Expect 0/4 projection coverage and Not projected, not zero execution cost.
+8. Open Coworker and ask about the scenario; it uses the same session parameters and project scope. Scenario values are baseline again after a full reload, because parameters are session state.
 
-## 6. Executive brief and export checks
+## 6. Exports and publication
 
-1. Reset filters and scenario to baseline. Open Executive Brief.
-2. Draft/edit the narrative, inspect evidence and mark the scope reviewed.
-3. Download the reviewed Markdown brief. Compare its figures with Coworker and the numeric XLSX export.
-4. Edit the narrative, change a global filter or change the scenario: review must reset to Draft.
-5. Clear the narrative: review must be disabled.
-6. Close/reopen the page: review is not a durable approval record.
+- Every chart offers PNG only; no SVG download control.
+- XLSX workbooks contain the exact filtered rows, numeric cells, official product/organization and dummy-data notice.
+- Risk scenario CSV/XLSX retain scenario parameters, currency and snapshot.
+- Run build, Python and the 12 browser tests before merging. The browser suite checks downloaded PNG bytes/dimensions and workbook contents.
+- Push atlas_ui_refresh, review its PR and merge only after validation passes. One workflow deploys main to Pages.
+- On Pages, check the new UI and guided Coworker. Use localhost 8765 separately for real AI.
 
-Pass: numeric cells retain precision, Markdown uses the displayed rounding, sources/assumptions and the dummy-data notice are included.
-
-## 7. Local LM Studio evaluation
-
-Follow [LM_STUDIO_SETUP.md](LM_STUDIO_SETUP.md). `check` must find the model; `evaluate` must return `mode: local_ai`. Enable Use local AI, ask the same reporting/quality/scenario questions and compare each sentence with evidence. Stop the model server after enabling AI and ask again; expect an explicit guided fallback.
-
-Record hardware, model ID, quantization, context size, response time and factual errors. A valid JSON response or valid source ID is not proof that every narrative claim is supported.
-
-## 8. Browser / publication checks
-
-- Desktop and a narrow mobile viewport: navigation, controls, tables, source dialogs and exports remain usable.
-- Keyboard: About/Project 360/evidence dialogs close with Escape and restore focus.
-- GitHub Pages: the guided demo works without local services, accounts or model installation.
-- Integration branch/PR: one workflow validates without publishing. Main: successful validation precedes Pages deployment.
-
-For executed checks and limitations, see [VALIDATION.md](VALIDATION.md).
+The optional quality/review components remain covered through direct component hosts. They are intentionally outside this end-user walkthrough because they are disabled in the standard release.
