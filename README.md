@@ -13,7 +13,7 @@ Business data is often scattered across various systems and reports, each using 
 
 To solve this, I created *Atlas*, an integrated hub that unifies insights across portfolio delivery, staffing, budgets, and risks. *Atlas* provides decisionmakers with a comprehensive view of an organization's data, enabling them to act informed, avoid firefighting, and achieve strategic success.
 
-Atlas integrates *Coworker*, an AI Agent that answers your questions, drafts deliverables and creates financial scenarios. For this demo, *Coworker* uses verified calculations and templates. However, *Coworker* is enabled to run any local AI model using Python and LM Studio (see [Run Coworker with local AI (LM Studio)](#run-coworker-with-local-ai-lm-studio)).
+Atlas integrates *Coworker*, an AI Agent that answers your questions, drafts deliverables and creates financial scenarios. For this demo, *Coworker* uses verified calculations and templates. However, *Coworker* is enabled to run any local AI model (see [Run Coworker with local AI (LM Studio)](#run-coworker-with-local-ai-lm-studio)).
 
 ## Explore the Business Intelligence Hub in one minute
 
