@@ -15,8 +15,13 @@ To solve this, I created *Atlas*, an integrated hub that unifies insights across
 
 Atlas integrates *Coworker*, an AI Agent that answers your questions, drafts deliverables and creates financial scenarios. For this demo, *Coworker* uses verified calculations and templates. However, *Coworker* is enabled to run any local AI model (see [Run Coworker with local AI (LM Studio)](#run-coworker-with-local-ai-lm-studio)).
 
-## Explore the Business Intelligence Hub in one minute
+## Hand-on Atlas in 90s
 
+Begin with this *Atlas* walkthrough:
+
+[![Watch the Atlas 90-second walkthrough](https://img.youtube.com/vi/oXHX2xGsrbo/hqdefault.jpg)](https://www.youtube.com/watch?v=oXHX2xGsrbo)
+
+Or go to the demo and explore Atlas on your own:
 1. Start on Overview and select a Program filter.
 2. Select **Review delivery** to inspect projects behind schedule.
 3. Open a project from a table or chart to explore Project 360.
