@@ -1,29 +1,28 @@
 # Atlas Business Intelligence Hub
-
-**Fictional organization:** Atlas Impact Network
-
-**AI Assistant:** Coworker · **Version:** 1.2.0 · UI update 25 October 2026
+**Version:** 1.2.2 · Last updated 25 October 2026
 
 **Portfolio owner:** [Ivan Morales · Infanatoca17](https://github.com/Infanatoca17)
 
-**Live demo:** [infanatoca17.github.io/business-intelligence-hub](https://infanatoca17.github.io/business-intelligence-hub/)
+**Demo:** [infanatoca17.github.io/business-intelligence-hub](https://infanatoca17.github.io/business-intelligence-hub/)
 
 > This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.
 
 ## Why does this product exist?
 
-At organizations, decision-makers often review data from multiple sources with different reporting methods. To assist them, I designed an integrated data hub that translates complex information into simple and actionable tools that anyone can use. This demo is built using automated workflows, relational models and an intuitive interface to support informed conversations.
+Business data is often scattered across various systems and reports, each using different definitions and methodologies. This makes it difficult for organizations to align daily operations with overarching business priorities and identify issues requiring leadership's attention.
 
-Coworker is an AI Assistant: It connects portfolio and project reporting data, evidence review and financial scenarios. The  demo uses verified calculations and guided templates. However, it is enabled to run Python using locally installed LM Studio models to generate insights from verified facts and evidence.
+To solve this, I created *Atlas*, an integrated hub that unifies insights across portfolio delivery, staffing, budgets, and risks. *Atlas* provides decisionmakers with a comprehensive view of an organization's data, enabling them to act informed, avoid firefighting, and achieve strategic success.
+
+Atlas integrates *Coworker*, an AI Agent that answers your questions, drafts deliverables and creates financial scenarios. For this demo, *Coworker* uses verified calculations and templates. However, *Coworker* is enabled to run any local AI model using Python and LM Studio (see ## Run Coworker with local AI (LM Studio)).
 
 ## Explore the Business Intelligence Hub in one minute
 
-1. Start on Overview and select **Health** in the Program filter.
+1. Start on Overview and select a Program filter.
 2. Select **Review delivery** to inspect projects behind schedule.
 3. Open a project from a table or chart to explore Project 360.
 4. Review its deliverables, response plan, people, and financials.
 5. Open **Coworker**, select **Draft the quarterly brief**, then press **Ask Coworker** to generate a response.
-6. Export a filtered workbook, download a chart as PNG.
+6. Export a filtered workbook or download any chart as PNG.
 
 ## What is included in this Hub?
 
@@ -115,8 +114,6 @@ The public [Coworker demo](https://infanatoca17.github.io/business-intelligence-
    ```
 
 5. Open [local Coworker](http://127.0.0.1:8765/business-intelligence-hub/?view=coworker), click **Check connection**, enable **Use local AI**, and press **Ask Coworker**. Confirm **Local AI · LM Studio** and compare the narrative with verified figures.
-
-Coworker always uses the complete current-snapshot portfolio. Its sample label and current-view export button are removed. The compact layout fits the four cards, input and example prompts into the initial 1366 × 768 and 1280 × 720 desktop views at 100% zoom. Smaller screens and generated responses can scroll naturally. Portfolio filters remain available when you return to another tab. Selecting a sample question only fills the prompt. Changing the question clears the previous response. Public Pages does not connect to your local model in this update; the same-origin service configuration is preserved.
 
 If your server requires authentication, use `LM_STUDIO_API_KEY` in the Python terminal and an Authorization header when listing models. Keep tokens and model weights out of Git. See [the detailed setup and troubleshooting guide](docs/LM_STUDIO_SETUP.md).
 
