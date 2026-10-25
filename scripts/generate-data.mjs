@@ -21,7 +21,7 @@ export function generateBundle() {
     asOf: "2026-09-22",
     period: "Q3 2026",
     seed: 17092026,
-    synthetic: true,
+    dummy: true,
     disclaimer:
       "This is a demo with dummy data. It does not contain or reproduce copyrighted, confidential or protected code, systems, or datasets.",
     contact: "hello@atlas-impact.example",
@@ -210,7 +210,7 @@ export function generateBundle() {
         ownerEmail: `${person(n).toLowerCase().replaceAll(" ", ".")}@atlas-impact.example`,
         startDate,
         endDate,
-        status: j === 11 ? "Planned" : "Active",
+        status: j === 9 || j === 10 ? "Closed" : "Active",
         planId,
         budget,
         description: `A fictional ${program.name.toLowerCase()} initiative supporting practical, locally led improvements through collaborative delivery and evidence-based learning.`,
@@ -227,8 +227,14 @@ export function generateBundle() {
         project.endDate = "2027-09-30";
         project.expected = 0;
       }
+      if (project.status === "Closed") {
+        project.endDate = "2026-08-31";
+        project.expected = progressExpected(project.startDate, project.endDate, meta.asOf);
+      }
       const target =
-        j === 11
+        project.status === "Closed"
+          ? 100
+          : j === 11
           ? 0
           : Math.min(
               92,
@@ -273,20 +279,13 @@ export function generateBundle() {
           assignee: person(n),
           dueDate,
           completion,
-          status:
-            completion === 100
-              ? "Complete"
-              : dueDate < meta.asOf
-                ? "Overdue"
-                : completion > 0
-                  ? "In progress"
-                  : "Scheduled",
+          status: completion === 100 ? "Closed" : "Active",
           program: program.name,
           team: project.team,
           office: project.office,
           location: project.location,
           budget: Math.round(budget * budgetParts[k]),
-          description: `Synthetic ${kind.toLowerCase()} for the ${title} demonstration project.`,
+          description: `Dummy ${kind.toLowerCase()} for the ${title} demonstration project.`,
         });
       });
       const riskNames = [
@@ -297,12 +296,7 @@ export function generateBundle() {
       riskNames.forEach((name, k) => {
         const impact = n % 13 === 0 ? 5 : 1 + ((n + k * 2) % 5);
         const likelihood = k === 2 || n % 13 === 0 ? 5 : 1 + ((n * 3 + k) % 5);
-        const status =
-          (n + k) % 9 === 0
-            ? "Closed"
-            : (n + k) % 3 === 0
-              ? "Monitoring"
-              : "Open";
+        const status = project.status === "Closed" || (n + k) % 9 === 0 ? "Closed" : "Active";
         const record = {
           id: `ATL-R${String(n * 3 + k + 1).padStart(4, "0")}`,
           projectId: id,
@@ -344,7 +338,7 @@ export function generateBundle() {
         projectId: id,
         name: `${title} response plan`,
         owner: person(n),
-        status: "Reviewed",
+        status: project.status === "Closed" ? "Closed" : "Active",
         lastReview: "2026-09-15",
         nextReview: "2026-10-15",
         approach:
@@ -364,7 +358,7 @@ export function generateBundle() {
           office: project.office,
           program: program.name,
           team: project.team,
-          status: "Active",
+          status: project.status,
           fte: Math.round(fte * 10) / 10,
           weeklyHours: Math.round(fte * 40),
           startDate: "2026-01-01",
@@ -428,7 +422,7 @@ export function generateBundle() {
     likelihoodProbabilities: { 1: 0.10, 2: 0.25, 3: 0.45, 4: 0.65, 5: 0.85 },
     capacityCostFactor: 0.30,
     currency: "USD",
-    probabilityBasis: "Illustrative synthetic assumptions; not calibrated probabilities.",
+    probabilityBasis: "Illustrative dummy assumptions; not calibrated probabilities.",
   };
   risks.forEach((r, i) => {
     r.probability = r.kind === "Issue" ? 1 : assumptions.likelihoodProbabilities[r.likelihood];
@@ -456,11 +450,11 @@ export function generateBundle() {
     });
   });
   const documents = [
-    { id: "DOC-METHOD", title: "Delivery and scope policy", text: "Actual progress is the arithmetic mean of deliverable completion; portfolio progress is the equal-weight mean of all projects in the selected scope, including planned projects. Expected progress uses elapsed planned time at the fixed snapshot. On track allows seven percentage points on either side of expected progress. Monthly observations are historical evidence, not a replacement for current deliverables." },
-    { id: "DOC-QUALITY", title: "Synthetic quality policy", text: "Invalid, duplicate and orphan monthly observations are quarantined with source locators. Warnings identify missing owners, response actions or stale reports. The defect sample deliberately introduces eight findings; loading the canonical sample replaces the fixture, not arbitrary user data." },
-    { id: "DOC-RISK", title: "Exposure and financial scenario policy", text: "Exposure is the mean impact times likelihood times four for non-closed threats, bounded from zero to one hundred. Financial consequences sum explicit probability times synthetic loss in USD, with issues at probability one and closed records excluded. Exposure and dollars have different units and are never added together." },
-    { id: "DOC-PROBABILITY", title: "Synthetic probability assumptions", text: "Risk likelihood levels one through five use probabilities 10%, 25%, 45%, 65% and 85%. These are explicit fictional scenario inputs, not empirical estimates. Likelihood uplift scales probability and caps it at one; issues stay at one." },
-    { id: "DOC-FINANCE", title: "Cost and delay assumptions", text: "Scenario execution cost extrapolates spending divided by deliverable-derived progress for projects with positive progress. Remaining cost increases by 0.30 times capacity reduction. Funding reductions apply to approved budget. Funding gaps are calculated per project and do not transfer surplus. Delay adds capacity delay and probability-weighted threat delay; correlations and overlap are not modeled. The synthetic financial forecast is a separate baseline field." },
+    { id: "DOC-METHOD", title: "Delivery and scope policy", text: "Actual progress is the arithmetic mean of deliverable completion; portfolio progress is the equal-weight mean of all projects in the selected scope, including future-start projects. Expected progress uses elapsed planned time at the fixed snapshot. On track allows seven percentage points on either side of expected progress. Monthly observations are historical evidence, not a replacement for current deliverables." },
+    { id: "DOC-QUALITY", title: "Dummy quality policy", text: "Invalid, duplicate and orphan monthly observations are quarantined with source locators. Warnings identify missing owners, response actions or stale reports. The defect sample deliberately introduces eight findings; loading the canonical sample replaces the fixture, not arbitrary user data." },
+    { id: "DOC-RISK", title: "Exposure and financial scenario policy", text: "Exposure is the mean impact times likelihood times four for non-closed threats, bounded from zero to one hundred. Financial consequences sum explicit probability times dummy loss in USD, with issues at probability one and closed records excluded. Exposure and dollars have different units and are never added together." },
+    { id: "DOC-PROBABILITY", title: "Dummy probability assumptions", text: "Risk likelihood levels one through five use probabilities 10%, 25%, 45%, 65% and 85%. These are explicit fictional scenario inputs, not empirical estimates. Likelihood uplift scales probability and caps it at one; issues stay at one." },
+    { id: "DOC-FINANCE", title: "Cost and delay assumptions", text: "Scenario execution cost extrapolates spending divided by deliverable-derived progress for projects with positive progress. Remaining cost increases by 0.30 times capacity reduction. Funding reductions apply to approved budget. Funding gaps are calculated per project and do not transfer surplus. Delay adds capacity delay and probability-weighted threat delay; correlations and overlap are not modeled. The dummy financial forecast is a separate baseline field." },
     { id: "DOC-REVIEW", title: "Human review policy", text: "Review requires nonempty scope, no critical quality findings and full current monthly observation coverage. Warnings require acknowledgement. Every generated narrative requires human review. Review is session-only and resets when scope, sample, scenario or narrative changes." },
   ];
   return {

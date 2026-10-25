@@ -19,11 +19,11 @@ def validate_request(body):
     if body.get("mode", "guided") not in {"guided", "local_ai"} or body.get("sample", "canonical") not in {"canonical", "defects"}:
         raise ValueError("Invalid mode or sample.")
     filters = body.get("filters", {})
-    if not isinstance(filters, dict) or set(filters) - {"program", "office", "status", "project"} or any(not isinstance(v, str) for v in filters.values()):
+    if not isinstance(filters, dict) or set(filters) - {"program", "office", "status", "project"} or any(not (isinstance(v, str) or isinstance(v, list) and all(isinstance(x, str) for x in v)) for v in filters.values()):
         raise ValueError("Invalid filters.")
     bundle = json.loads((ROOT / "src/data/atlas-bundle.json").read_text(encoding="utf-8"))
-    allowed = {"program": {"All programs"} | {p["name"] for p in bundle["programs"]}, "office": {"All offices"} | {p["office"] for p in bundle["projects"]}, "status": {"All statuses", "Active", "Planned"}, "project": {""} | {p["id"] for p in bundle["projects"]}}
-    if any(v not in allowed[k] for k, v in filters.items()):
+    allowed = {"program": {"All programs"} | {p["name"] for p in bundle["programs"]}, "office": {"All offices"} | {p["office"] for p in bundle["projects"]}, "status": {"All statuses", "Active", "Closed"}, "project": {""} | {p["id"] for p in bundle["projects"]}}
+    if any(x not in allowed[k] for k, v in filters.items() for x in (v if isinstance(v, list) else [v])):
         raise ValueError("Unknown scope value.")
     params = body.get("parameters", {})
     if not isinstance(params, dict) or set(params) - {"fundingCut", "capacityCut", "probabilityUplift"}:

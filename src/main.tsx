@@ -11,6 +11,7 @@ import { COWORKER_VIEWS, prepareSample } from "./coworker-engine.mjs";
 import { mean, sum, portfolioMetrics } from "./metrics.mjs";
 import {
   Bars,
+  Pie,
   Globe,
   Scatter,
   type Project,
@@ -24,6 +25,7 @@ import { DeliveryRibbon } from "./DeliveryRibbon";
 import { ProjectBudget } from "./ProjectBudget";
 import { deliveryRowsAt, quarterCuts } from "./delivery-history.mjs";
 import { NAVIGATION_VIEWS, OPTIONAL_VIEWS, OPTIONAL_WORKSPACES_ENABLED } from "./portfolio-ui.mjs";
+import { MultiFilter, useMultiFilter, matchesFilter, readFilter } from "./MultiFilter";
 import "./style.css";
 const bundle = sourceBundle;
 
@@ -138,7 +140,7 @@ function Kpi({
 }: {
   label: string;
   value: string | number;
-  detail: string;
+  detail?: string;
   accent?: boolean;
   onClick?: () => void;
 }) {
@@ -153,7 +155,7 @@ function Kpi({
         <Icon name="arrow" size={16} />
       </span>
       <strong>{value}</strong>
-      <span className="kpi-detail">{detail}</span>
+      {detail && <span className="kpi-detail">{detail}</span>}
     </button>
   );
 }
@@ -201,7 +203,7 @@ function Table({
           </h2>
           <p>
             {caption ||
-              "Select a record to explore its project. Sort by any column."}
+              "Select an entry to open detailed view."}
           </p>
         </div>
         <button
@@ -299,7 +301,7 @@ function Table({
           {rows.length
             ? `${safePage * 10 + 1}–${Math.min(rows.length, safePage * 10 + 10)} of ${rows.length} records`
             : "0 records"}{" "}
-          · Synthetic data
+          · Dummy data
         </span>
         <div>
           <button
@@ -400,7 +402,7 @@ function About({ close }: { close: () => void }) {
         </li>
         <li>
           Download the filtered tables or charts. Every export is labelled as
-          synthetic.
+          dummy data.
         </li>
       </ol>
       <h3>Demo methodology</h3>
@@ -497,8 +499,7 @@ const projectColumns: Column[] = [
   progressCol,
   { key: "expected", label: "Expected", render: pct },
   badgeCol("schedule", "Schedule"),
-  { key: "exposure", label: "Exposure" },
-  { key: "expectedLossUsd", label: "Expected consequences (USD)", render: dollar },
+  badgeCol("status", "Status"),
 ];
 const deliverableColumns: Column[] = [
   { key: "name", label: "Deliverable" },
@@ -513,8 +514,8 @@ const riskColumns: Column[] = [
   { key: "project", label: "Project" },
   { key: "category", label: "Category" },
   { key: "score", label: "Exposure" },
-  { key: "probability", label: "Synthetic probability", render: v => pct(Number(v) * 100) },
-  { key: "expectedLossUsd", label: "Expected consequences (USD)", render: dollar },
+  { key: "probability", label: "Probability of occurence", render: v => pct(Number(v) * 100) },
+  { key: "lossUsd", label: "Financial impact if risk materializes", render: dollar },
   badgeCol("severity", "Severity"),
   badgeCol("status", "Status"),
   { key: "owner", label: "Owner" },
@@ -661,7 +662,7 @@ function Project360({
           { key: "expectedLossUsd", label: "Expected consequences", render: dollar },
           { key: "nextYearBudget", label: "Next year budget", render: dollar },
         ]}
-        caption="Synthetic values in USD."
+        caption="Dummy values in USD."
       />
       <Table
         title="Project funding opportunities"
@@ -686,67 +687,67 @@ function readRoute() {
       (q.get("view") === "risk-scenarios" ? "Risks" : views.find(
         (v) => v.toLowerCase().replaceAll(" ", "-") === q.get("view") && (OPTIONAL_WORKSPACES_ENABLED || !OPTIONAL_VIEWS.includes(v)),
       )) || "Overview",
-    riskMode: q.get("view") === "risk-scenarios" || q.get("risk-view") === "scenarios" ? "scenarios" : "register",
     deliverableCut: quarterCuts(bundle.deliverables).some(c => c.date === q.get("deliverable-cut")) ? q.get("deliverable-cut")! : "",
-    program: bundle.programs.some((p) => p.name === q.get("program"))
-      ? q.get("program")!
-      : "All programs",
-    office: bundle.projects.some((p) => p.office === q.get("office")?.replace(/ Hub$/, ""))
-      ? q.get("office")!.replace(/ Hub$/, "")
-      : "All offices",
-    status: ["Active", "Planned"].includes(q.get("status") || "")
-      ? q.get("status")!
-      : "All statuses",
+    program: readFilter(q, "program", bundle.programs.map(p => p.name)),
+    office: readFilter(q, "office", [...new Set(bundle.projects.map(p => p.office))], value => value.replace(/ Hub$/, "")),
+    status: readFilter(q, "status", ["Active", "Closed"]),
     project: bundle.projects.some((p) => p.id === q.get("project"))
       ? q.get("project")!
       : "",
-    scopeProject: bundle.projects.some((p) => p.id === q.get("scope-project")) ? q.get("scope-project")! : "",
+    scopeProject: readFilter(q, "scope-project", bundle.projects.map(p => p.id)),
+    detail: readFilter(q, "detail", ["Active", "Closed", "On track", "Behind schedule", "Ahead of plan", "Proposed", "Under review", "Negotiation", "Secured"]),
+    severity: readFilter(q, "severity", ["Minor", "Moderate", "Major", "Critical"]),
+    category: readFilter(q, "category", ["Operational", "Financial", "Delivery"]),
+    impact: readFilter(q, "impact", ["Communities", "Delivery team", "Partners"]),
+    location: bundle.locations.some(l => l.id === q.get("location")) ? q.get("location")! : "",
     sample: OPTIONAL_WORKSPACES_ENABLED && q.get("sample") === "defects" ? "defects" : "canonical",
   };
 }
 export function App() {
   const initial = useMemo(readRoute, []);
   const [sample, setSample] = useState(initial.sample);
-  const [scopeProject, setScopeProject] = useState(initial.scopeProject);
+  const [scopeProject, setScopeProject] = useMultiFilter(initial.scopeProject);
   const prepared = useMemo(() => prepareSample(sourceBundle, sample), [sample]);
   const scopedBundle = prepared.data as typeof sourceBundle;
   const bundle = scopedBundle;
   const [view, setView] = useState<View>(initial.view);
-  const [riskMode, setRiskMode] = useState(initial.riskMode);
   const [deliverableCut, setDeliverableCut] = useState(initial.deliverableCut);
-  const workspaceView = view === "Risks" && riskMode === "scenarios" ? "Risk Scenarios" : view;
-  const [program, setProgram] = useState(initial.program);
-  const [office, setOffice] = useState(initial.office);
-  const [status, setStatus] = useState(initial.status);
+  const workspaceView = view;
+  const [program, setProgram] = useMultiFilter(initial.program);
+  const [office, setOffice] = useMultiFilter(initial.office);
+  const [status, setStatus] = useMultiFilter(initial.status);
   const [projectId, setProjectId] = useState(initial.project);
   const [about, setAbout] = useState(false);
   const [search, setSearch] = useState("");
   const [queryOpen, setQueryOpen] = useState(false);
-  const [detailFilter, setDetailFilter] = useState("All");
-  const [severityFilter, setSeverityFilter] = useState("All");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [impactFilter, setImpactFilter] = useState("All");
-  const [locationFilter, setLocationFilter] = useState("");
+  const [detailFilter, setDetailFilter] = useMultiFilter(initial.detail);
+  const [severityFilter, setSeverityFilter] = useMultiFilter(initial.severity);
+  const [categoryFilter, setCategoryFilter] = useMultiFilter(initial.category);
+  const [impactFilter, setImpactFilter] = useMultiFilter(initial.impact);
+  const [locationFilter, setLocationFilter] = useState(initial.location);
   const [exportError, setExportError] = useState("");
   const [exporting, setExporting] = useState(false);
   useEffect(() => {
     const q = new URLSearchParams();
     q.set("view", view.toLowerCase().replaceAll(" ", "-"));
-    if (view === "Risks" && riskMode === "scenarios") q.set("risk-view", "scenarios");
     if (deliverableCut) q.set("deliverable-cut", deliverableCut);
-    if (program !== "All programs") q.set("program", program);
-    if (office !== "All offices") q.set("office", office);
-    if (status !== "All statuses") q.set("status", status);
+    program.forEach(value => q.append("program", value));
+    office.forEach(value => q.append("office", value));
+    status.forEach(value => q.append("status", value));
     if (projectId) q.set("project", projectId);
-    if (scopeProject) q.set("scope-project", scopeProject);
+    scopeProject.forEach(value => q.append("scope-project", value));
+    detailFilter.forEach(value => q.append("detail", value));
+    severityFilter.forEach(value => q.append("severity", value));
+    categoryFilter.forEach(value => q.append("category", value));
+    impactFilter.forEach(value => q.append("impact", value));
+    if (locationFilter) q.set("location", locationFilter);
     if (sample === "defects") q.set("sample", sample);
     window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
-  }, [view, program, office, status, projectId, scopeProject, sample, riskMode, deliverableCut]);
+  }, [view, program, office, status, projectId, scopeProject, sample, deliverableCut, detailFilter, severityFilter, categoryFilter, impactFilter, locationFilter]);
   useEffect(() => {
     const back = () => {
       const s = readRoute();
       setView(s.view);
-      setRiskMode(s.riskMode);
       setDeliverableCut(s.deliverableCut);
       setProgram(s.program);
       setOffice(s.office);
@@ -754,13 +755,13 @@ export function App() {
       setProjectId(s.project);
       setScopeProject(s.scopeProject);
       setSample(s.sample);
+      setDetailFilter(s.detail); setSeverityFilter(s.severity); setCategoryFilter(s.category); setImpactFilter(s.impact); setLocationFilter(s.location);
     };
     window.addEventListener("popstate", back);
     return () => window.removeEventListener("popstate", back);
   }, []);
   const navigate = (v: View) => {
     setView(v === "Risk Scenarios" ? "Risks" : !OPTIONAL_WORKSPACES_ENABLED && OPTIONAL_VIEWS.includes(v) ? "Overview" : v);
-    setRiskMode(v === "Risk Scenarios" ? "scenarios" : "register");
     setDetailFilter("All");
     setSeverityFilter("All");
     setCategoryFilter("All");
@@ -783,10 +784,10 @@ export function App() {
     () =>
       bundle.projects.filter(
         (p) =>
-          (program === "All programs" || p.program === program) &&
-          (office === "All offices" || p.office === office) &&
-          (status === "All statuses" || p.status === status) &&
-          (!scopeProject || p.id === scopeProject),
+          matchesFilter(p.program, program) &&
+          matchesFilter(p.office, office) &&
+          matchesFilter(p.status, status) &&
+          matchesFilter(p.id, scopeProject),
       ),
     [program, office, status, scopeProject, bundle],
   );
@@ -880,25 +881,25 @@ export function App() {
   const projectRows = projects.filter(
     (p) =>
       (!locationFilter || p.locationId === locationFilter) &&
-      (detailFilter === "All" || p.schedule === detailFilter),
+      matchesFilter(p.schedule, detailFilter),
   );
   const cutoff = deliverableCut || bundle.meta.asOf;
   const historicalDeliverables = deliveryRowsAt(relatedDeliverables, cutoff, bundle.meta.asOf) as typeof relatedDeliverables;
   const deliverableRows = historicalDeliverables.filter(
-    (d) => detailFilter === "All" || d.status === detailFilter,
+    (d) => matchesFilter(d.status, detailFilter),
   );
   const staffRows = related(bundle.staff);
   const financialRows = related(bundle.financials);
   const fundingRows = related(bundle.funding).filter(
-    (f) => detailFilter === "All" || f.stage === detailFilter,
+    (f) => matchesFilter(f.stage, detailFilter),
   );
   const riskRows = relatedRisks.filter(
     (r) =>
       r.kind === (view === "Issues" ? "Issue" : "Risk") &&
-      (detailFilter === "All" || r.status === detailFilter) &&
-      (severityFilter === "All" || r.severity === severityFilter) &&
-      (categoryFilter === "All" || r.category === categoryFilter) &&
-      (impactFilter === "All" || r.impacted === impactFilter),
+      matchesFilter(r.status, detailFilter) &&
+      matchesFilter(r.severity, severityFilter) &&
+      matchesFilter(r.category, categoryFilter) &&
+      matchesFilter(r.impacted, impactFilter),
   );
   const exportRows: Row[] =
     view === "Deliverables"
@@ -914,27 +915,22 @@ export function App() {
               : view === "Projects"
                 ? projectRows
                 : projects;
-  const select = (
-    label: string,
-    value: string,
-    options: string[],
-    setter: (v: string) => void,
-  ) => (
-    <label className="filter">
-      <span>{label}</span>
-      <select
-        aria-label={label}
-        value={value}
-        onChange={(e) => setter(e.target.value)}
-      >
-        {options.map((o) => (
-          <option key={o}>{o}</option>
-        ))}
-      </select>
-    </label>
-  );
+  const select = (label: string, value: string[], options: string[], setter: (v: string | string[]) => void) =>
+    <MultiFilter label={label} value={value} options={options.slice(1).map(v => ({ value: v, label: v }))} allLabel={options[0]} onChange={setter} />;
+  const activeFilters = [
+    ...program.map(v => ({ key: `program-${v}`, label: `Program: ${v}`, remove: () => setProgram(program.filter(x => x !== v)) })),
+    ...scopeProject.map(v => ({ key: `project-${v}`, label: `Project: ${bundle.projects.find(p => p.id === v)?.name}`, remove: () => setScopeProject(scopeProject.filter(x => x !== v)) })),
+    ...office.map(v => ({ key: `office-${v}`, label: `Office: ${v}`, remove: () => setOffice(office.filter(x => x !== v)) })),
+    ...status.map(v => ({ key: `status-${v}`, label: `Project status: ${v}`, remove: () => setStatus(status.filter(x => x !== v)) })),
+    ...detailFilter.map(v => ({ key: `detail-${v}`, label: `${view === "Projects" ? "Schedule" : view === "Funding Pipeline" ? "Stage" : "Status"}: ${v}`, remove: () => setDetailFilter(detailFilter.filter(x => x !== v)) })),
+    ...severityFilter.map(v => ({ key: `severity-${v}`, label: `Severity: ${v}`, remove: () => setSeverityFilter(severityFilter.filter(x => x !== v)) })),
+    ...categoryFilter.map(v => ({ key: `category-${v}`, label: `Category: ${v}`, remove: () => setCategoryFilter(categoryFilter.filter(x => x !== v)) })),
+    ...impactFilter.map(v => ({ key: `impact-${v}`, label: `Impact: ${v}`, remove: () => setImpactFilter(impactFilter.filter(x => x !== v)) })),
+    ...(locationFilter ? [{ key: 'location', label: `Site: ${bundle.locations.find(l => l.id === locationFilter)?.name}`, remove: () => setLocationFilter("") }] : []),
+    ...(view === "Deliverables" && deliverableCut ? [{ key: 'cutoff', label: `Cutoff: ${deliverableCut}`, remove: () => setDeliverableCut("") }] : []),
+  ];
   const subtitles: Record<View, string> = {
-    Overview: "A connected view of delivery, resources, and emerging risks.",
+    Overview: "An integrated hub for operations, risks, financials and staff strategic insights",
     Projects:
       "From portfolio priorities to the detail behind every initiative.",
     Deliverables:
@@ -948,7 +944,7 @@ export function App() {
     "Data Quality": "Inspect findings, quarantined observations and reporting coverage.",
     "Risk Scenarios": "Connect exposure with explicit financial and capacity assumptions.",
     "Executive Brief": "Draft, review and export a brief from the same verified figures.",
-    Methodology: "Inspect the shared calculation contract and synthetic assumptions.",
+    Methodology: "Inspect the shared calculation contract and dummy assumptions.",
   };
   const atRisk = projects.filter((p) => p.schedule === "Behind schedule");
   const offices = [...new Set(bundle.projects.map((p) => p.office))];
@@ -961,7 +957,7 @@ export function App() {
         <span className="demo-pulse" aria-hidden="true" />
         <span>Independent Demo</span>
         <span className="banner-separator" aria-hidden="true">|</span>
-        <span>All Data is Synthetic</span>
+        <span>All Data is Dummy Data</span>
         <span className="banner-separator" aria-hidden="true">|</span>
         <button onClick={() => setAbout(true)}>About the Data</button>
       </div>
@@ -1111,7 +1107,7 @@ export function App() {
           </div>
         </div>
         {exportError && <p role="alert">{exportError}</p>}
-        <div className="filters">
+        {view !== "Coworker" && <><div className={`filters ${activeFilters.length ? "has-active-filters" : ""}`}>
           {select(
             "Program",
             program,
@@ -1121,7 +1117,7 @@ export function App() {
               setLocationFilter("");
             },
           )}
-          <label className="filter"><span>Project</span><select aria-label="Project" value={scopeProject} onChange={e => setScopeProject(e.target.value)}><option value="">All projects</option>{sourceBundle.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+          <MultiFilter label="Project" value={scopeProject} options={sourceBundle.projects.map(p => ({ value: p.id, label: p.name }))} allLabel="All projects" onChange={setScopeProject} />
           {select(
             "Leading office",
             office,
@@ -1134,10 +1130,13 @@ export function App() {
           {select(
             "Project status",
             status,
-            ["All statuses", "Active", "Planned"],
+            ["All statuses", "Active", "Closed"],
             setStatus,
           )}
-          <button className="reset" onClick={reset}>
+          {view === "Projects" && select("Schedule", detailFilter, ["All schedules", "On track", "Behind schedule", "Ahead of plan"], setDetailFilter)}
+          {view === "Deliverables" && select("Deliverable status", detailFilter, ["All statuses", "Active", "Closed"], setDetailFilter)}
+          {view === "Funding Pipeline" && select("Opportunity stage", detailFilter, ["All stages", "Proposed", "Under review", "Negotiation", "Secured"], setDetailFilter)}
+          <button className={`reset ${activeFilters.length ? "reset-active" : ""}`} onClick={reset}>
             ↺ Reset filters
           </button>
 
@@ -1145,8 +1144,8 @@ export function App() {
             {projects.length} projects in scope
           </span>
         </div>
-        {view === "Risks" && <div className="risk-view-toggle" role="group" aria-label="Risks view"><button aria-pressed={riskMode === "register"} onClick={() => setRiskMode("register")}>Risk register</button><button aria-pressed={riskMode === "scenarios"} onClick={() => setRiskMode("scenarios")}>Risk scenarios</button></div>}
-        <CoworkerWorkspace view={workspaceView} data={{ ...prepared.data, projects, ...Object.fromEntries(["deliverables", "risks", "plans", "staff", "financials", "funding", "observations"].map(k => [k, prepared.data[k].filter((r: { projectId: string }) => ids.has(r.projectId))])), qualityFindings: prepared.findings.filter((f: { projectId: string }) => ids.has(f.projectId) || !sourceBundle.projects.some(p => p.id === f.projectId)) }} filters={{ program, office, status, project: scopeProject }} sample={sample} setSample={setSample} navigate={navigate} openProject={openProject} />
+        {activeFilters.length > 0 && <div className="active-filters" aria-label="Active filters"><strong>{activeFilters.length} active {activeFilters.length === 1 ? 'filter' : 'filters'}</strong>{activeFilters.map(f => <button key={f.key} onClick={f.remove} aria-label={`Remove ${f.label}`}>{f.label}<span aria-hidden="true">×</span></button>)}</div>}</>}
+        <CoworkerWorkspace view={workspaceView} data={view === "Coworker" ? prepared.data : { ...prepared.data, projects, ...Object.fromEntries(["deliverables", "risks", "plans", "staff", "financials", "funding", "observations"].map(k => [k, prepared.data[k].filter((r: { projectId: string }) => ids.has(r.projectId))])), qualityFindings: prepared.findings.filter((f: { projectId: string }) => ids.has(f.projectId) || !sourceBundle.projects.some(p => p.id === f.projectId)) }} filters={view === "Coworker" ? {} : { program, office, status, project: scopeProject }} sample={sample} setSample={setSample} navigate={navigate} openProject={openProject} />
         {view === "Overview" && (
           <>
             <div className="kpi-grid overview-kpis">
@@ -1179,7 +1178,7 @@ export function App() {
                 onClick={() => navigate("Risks")}
               />
               <Kpi label="Portfolio exposure index" value={`${metrics.exposure} / 100`} detail="Mean of project exposure indices" onClick={() => navigate("Risk Scenarios")} />
-              <Kpi label="Expected financial consequences" value={money(metrics.expectedLoss)} detail="Baseline synthetic probabilities · USD" onClick={() => navigate("Risk Scenarios")} />
+              <Kpi label="Expected financial consequences" value={money(metrics.expectedLoss)} detail="Baseline dummy probabilities · USD" onClick={() => navigate("Risk Scenarios")} />
             </div>
             <div className="section-title">
               <div>
@@ -1266,9 +1265,8 @@ export function App() {
           <>
             <div className="kpi-grid">
               <Kpi
-                label="Projects shown"
+                label="Total projects"
                 value={projectRows.length}
-                detail="After project and location filters"
               />
               <Kpi
                 label="Actual delivery"
@@ -1289,27 +1287,9 @@ export function App() {
                 detail="Threat index · 0–100"
               />
             </div>
-            <div className="subfilters">
-              {select(
-                "Schedule",
-                detailFilter,
-                ["All", "On track", "Behind schedule", "Ahead of plan"],
-                setDetailFilter,
-              )}
-              {locationFilter && (
-                <button
-                  className="button subtle"
-                  onClick={() => setLocationFilter("")}
-                >
-                  Clear site:{" "}
-                  {bundle.locations.find((l) => l.id === locationFilter)!.name}{" "}
-                  ×
-                </button>
-              )}
-            </div>
             <div className="chart-grid projects-charts">
               <Scatter projects={projectRows} mode="progress" onOpen={openProject} />
-              <ProjectBudget projects={projectRows} programs={bundle.programs} onSelect={(name, band) => { setProgram(name); setLocationFilter(""); if (band === "Planned") { setStatus("Planned"); setDetailFilter("All"); } else setDetailFilter(band); }} />
+              <ProjectBudget projects={projectRows} programs={bundle.programs} onSelect={(name, band) => { setProgram(name); setLocationFilter(""); if (band === "Closed") { setStatus("Closed"); setDetailFilter("All"); } else setDetailFilter(band); }} />
             </div>
             <Table
               title="Project directory"
@@ -1330,14 +1310,14 @@ export function App() {
               <Kpi
                 label="Completed"
                 value={
-                  deliverableRows.filter((d) => d.status === "Complete").length
+                  deliverableRows.filter((d) => d.status === "Closed").length
                 }
                 detail="100% completion"
               />
               <Kpi
                 label="Overdue"
                 value={
-                  deliverableRows.filter((d) => d.status === "Overdue").length
+                  deliverableRows.filter((d) => d.status === "Active" && d.dueDate < cutoff).length
                 }
                 detail={`Due before ${date(cutoff)}`}
               />
@@ -1347,27 +1327,18 @@ export function App() {
                 detail="Equal weight per deliverable"
               />
             </div>
-            <div className="delivery-cut-summary" role="status">{deliverableCut ? `Quarter-end cut: ${date(cutoff)} · ${cutoff > bundle.meta.asOf ? "Synthetic simulation" : "Synthetic history"}` : `Current snapshot: ${date(cutoff)}`} {deliverableCut && <button className="text-link" onClick={() => { setDeliverableCut(""); setDetailFilter("All"); }}>Return to current snapshot ×</button>}</div>
-            <div className="subfilters">
-              {select(
-                "Deliverable status",
-                detailFilter,
-                ["All", "Complete", "In progress", "Scheduled", "Overdue"],
-                setDetailFilter,
-              )}
-            </div>
+            <div className="delivery-cut-summary" role="status">{deliverableCut ? `Quarter-end cut: ${date(cutoff)} · ${cutoff > bundle.meta.asOf ? "Dummy simulation" : "Dummy history"}` : `Current snapshot: ${date(cutoff)}`} {deliverableCut && <button className="text-link" onClick={() => { setDeliverableCut(""); setDetailFilter("All"); }}>Return to current snapshot ×</button>}</div>
             <div className="chart-grid">
               <Bars
                 title="Deliverables by status"
                 subtitle="Select a bar to filter the view"
-                exportContext={`Selected cutoff: ${cutoff} | ${cutoff > bundle.meta.asOf ? 'Synthetic simulation' : cutoff === bundle.meta.asOf ? 'Current snapshot' : 'Synthetic history'} | Status: ${detailFilter}`}
+                exportContext={`Selected cutoff: ${cutoff} | ${cutoff > bundle.meta.asOf ? 'Dummy simulation' : cutoff === bundle.meta.asOf ? 'Current snapshot' : 'Dummy history'} | Status: ${detailFilter.join(', ') || 'All'}`}
                 entries={groups(deliverableRows, "status")}
                 onSelect={setDetailFilter}
               />
-              <Bars
+              <Pie
                 title="Deliverables by program"
-                subtitle="Distribution within the current filters"
-                exportContext={`Selected cutoff: ${cutoff} | ${cutoff > bundle.meta.asOf ? 'Synthetic simulation' : cutoff === bundle.meta.asOf ? 'Current snapshot' : 'Synthetic history'} | Status: ${detailFilter}`}
+                exportContext={`Selected cutoff: ${cutoff} | ${cutoff > bundle.meta.asOf ? 'Dummy simulation' : cutoff === bundle.meta.asOf ? 'Current snapshot' : 'Dummy history'} | Status: ${detailFilter.join(', ') || 'All'}`}
                 entries={byProgram(deliverableRows)}
                 onSelect={setProgram}
               />
@@ -1385,31 +1356,22 @@ export function App() {
           <>
             <div className="kpi-grid">
               <Kpi
-                label="Team members"
+                label="Atlas Staff"
                 value={metrics.staff}
-                detail="Unique fictional people"
               />
               <Kpi
-                label="Allocated FTE"
-                value={metrics.fte}
-                detail="Sum of project allocations"
-              />
-              <Kpi
-                label="Weekly hours"
+                label="Weekly hour for all Staff"
                 value={sum(staffRows, "weeklyHours")}
-                detail="40 hours per full-time equivalent"
               />
               <Kpi
-                label="Delivery teams"
-                value={new Set(staffRows.map((s) => s.team)).size}
-                detail="Represented in the selected scope"
+                label="Active Teams"
+                value={new Set(staffRows.filter(s => s.status === "Active").map((s) => s.team)).size}
               />
             </div>
             <div className="chart-grid">
-              <Bars
-                title="FTE by program"
-                subtitle="Allocated full-time equivalents"
-                entries={byProgram(staffRows, "fte")}
+              <Pie
+                title="Staff by Program"
+                entries={byProgram(staffRows)}
                 onSelect={setProgram}
               />
               <Bars
@@ -1428,8 +1390,6 @@ export function App() {
                 { key: "project", label: "Project" },
                 { key: "team", label: "Team" },
                 { key: "office", label: "Office" },
-                { key: "fte", label: "FTE" },
-                { key: "weeklyHours", label: "Hours / week" },
               ]}
               onOpen={openProject}
             />
@@ -1439,33 +1399,25 @@ export function App() {
           <>
             <div className="kpi-grid financial-kpis">
               <Kpi
-                label="Budget"
+                label="FY Total Budget"
                 value={money(metrics.budget)}
-                detail="Selected project budgets · USD"
               />
               <Kpi
                 label="Actual expenditure"
                 value={money(metrics.spent)}
-                detail="As of the synthetic snapshot"
               />
               <Kpi
                 label="Forecast expenditure"
                 value={money(metrics.forecast)}
-                detail="Projected total cost · USD"
               />
               <Kpi
                 label="Burn rate"
                 value={pct(metrics.burn)}
                 detail="Actual expenditure ÷ budget"
               />
-              <Kpi
-                label="Expected consequences"
-                value={money(metrics.expectedLoss)}
-                detail="Baseline probability × loss · USD"
-              />
             </div>
             <div className="chart-grid">
-              <Bars
+              <Pie
                 title="Budget by program"
                 subtitle="Select a program to filter · USD"
                 entries={byProgram(financialRows, "budget")}
@@ -1502,34 +1454,16 @@ export function App() {
         )}
         {view === "Funding Pipeline" && (
           <>
-            <div className="subfilters">
-              {select(
-                "Opportunity stage",
-                detailFilter,
-                ["All", "Proposed", "Under review", "Negotiation", "Secured"],
-                setDetailFilter,
-              )}
-            </div>
             <div className="kpi-grid">
               <Kpi
                 label="Requested amount"
                 value={money(sum(fundingRows, "requested"))}
-                detail="All displayed stages · USD"
-              />
-              <Kpi
-                label="Weighted pipeline"
-                value={money(
-                  fundingRows.reduce(
-                    (n, r) => n + r.requested * r.probability,
-                    0,
-                  ),
-                )}
-                detail="Requested × stage probability"
+                detail="USD"
               />
               <Kpi
                 label="Opportunities"
                 value={fundingRows.length}
-                detail="Fictional funding prospects"
+                detail="Fictional prospects"
               />
               <Kpi
                 label="Secured amount"
@@ -1550,7 +1484,7 @@ export function App() {
                 onSelect={setDetailFilter}
                 currency
               />
-              <Bars
+              <Pie
                 title="Requested amount by program"
                 subtitle="Selected opportunity scope · USD"
                 entries={byProgram(fundingRows, "requested")}
@@ -1581,13 +1515,13 @@ export function App() {
             />
           </>
         )}
-        {(view === "Issues" || (view === "Risks" && riskMode === "register")) && (
+        {(view === "Issues" || view === "Risks") && (
           <>
             <div className="subfilters">
               {select(
                 `${view} status`,
                 detailFilter,
-                ["All", "Open", "Monitoring", "Closed"],
+                ["All statuses", "Active", "Closed"],
                 setDetailFilter,
               )}
               {select(
@@ -1616,7 +1550,7 @@ export function App() {
                 detail="After all active filters"
               />
               <Kpi
-                label="Open or monitoring"
+                label="Active"
                 value={riskRows.filter((r) => r.status !== "Closed").length}
                 detail="Response still required"
               />
@@ -1638,7 +1572,7 @@ export function App() {
               />
             </div>
             <div className="chart-grid">
-              <Bars
+              <Pie
                 title={`${view} by status`}
                 subtitle="Select a status to focus the register"
                 entries={groups(riskRows, "status")}
@@ -1660,7 +1594,7 @@ export function App() {
             <Table
               title={`${view} register`}
               rows={riskRows}
-              columns={riskColumns}
+              columns={riskColumns.map(c => c.key === "lossUsd" && view === "Issues" ? { ...c, label: "Financial impact if issue materializes" } : c)}
               onOpen={openProject}
             />
           </>

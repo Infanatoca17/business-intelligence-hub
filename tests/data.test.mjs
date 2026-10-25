@@ -30,9 +30,9 @@ const datasets = [
   "locations",
 ];
 
-test("All business data is reproducible and expressly synthetic", () => {
+test("All business data is reproducible and expressly dummy", () => {
   assert.deepEqual(data, generateBundle());
-  assert.equal(data.meta.synthetic, true);
+  assert.equal(data.meta.dummy, true);
   assert.deepEqual(
     data.programs.map((p) => p.name),
     ["Sustainability", "Health", "Governance", "Education"],
@@ -218,4 +218,21 @@ test("Source and assets have no institutional links or old branding", () => {
   }
   scan(new URL("../src/", import.meta.url));
   scan(new URL("../public/", import.meta.url));
+});
+
+test('Lifecycle is binary and closed project examples reconcile with their deliverables and threats in every program', () => {
+  for (const program of data.programs) {
+    const projects = data.projects.filter(p => p.program === program.name);
+    assert.equal(projects.filter(p => p.status === 'Closed').length, 2);
+    assert.equal(projects.filter(p => p.status === 'Active').length, 10);
+  }
+  for (const rows of [data.projects, data.deliverables, data.risks, data.plans, data.staff]) {
+    assert.ok(rows.every(r => ['Active', 'Closed'].includes(r.status)));
+  }
+  for (const project of data.projects.filter(p => p.status === 'Closed')) {
+    assert.equal(project.progress, 100); assert.equal(project.expected, 100);
+    assert.ok(project.endDate <= data.meta.asOf);
+    assert.ok(data.deliverables.filter(d => d.projectId === project.id).every(d => d.status === 'Closed' && d.completion === 100));
+    assert.ok(data.risks.filter(r => r.projectId === project.id).every(r => r.status === 'Closed' && r.expectedLossUsd === 0));
+  }
 });

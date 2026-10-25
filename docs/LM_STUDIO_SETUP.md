@@ -59,17 +59,16 @@ Open **[http://127.0.0.1:8765/business-intelligence-hub/](http://127.0.0.1:8765/
 3. Enable **Use local AI**.
 4. Click **Draft the quarterly brief**, then **Ask Coworker** if needed.
 5. Confirm **Local AI · LM Studio**, not Guided demo or Guided fallback.
-6. Inspect inline citations such as **CALC-PORTFOLIO** and compare all narrative numbers with the verified cards and XLSX.
+6. Compare all narrative numbers with the verified cards and XLSX. Citation IDs remain internal to response validation; the prompt area no longer displays citation pills.
 
-The readiness banner and separate Sources panel have been removed; connection checks, the AI toggle, request handling and evidence dialogs remain. This version does not expose the optional Executive Brief workspace. The local model drafts text and cannot replace calculated facts, repair source records or approve a report.
+The filter bar, observation-count label and citation pills are hidden in Coworker. It uses the complete current-snapshot portfolio, while filters remain selected in other tabs. The example question is preloaded, but no answer appears until Ask Coworker. Connection checks, the AI toggle and request handling remain. This version does not expose the optional Executive Brief workspace. The local model drafts text and cannot replace calculated facts, repair source records or approve a report.
 
 ## 5. Recheck scope and fallback
 
 | Check | Expected result |
 |---|---|
-| All programs, quarterly brief | 48 projects, 56.0% delivery, $20,617,744 spending and $6,703,756.25 baseline expected consequences |
-| Health, quarterly brief | 12 projects, 58.5% delivery and $5,097,830 spending |
-| Risks → Risk scenarios, change assumptions; then Coworker | Scenario facts use the same retained parameters and global scope |
+| Full portfolio, quarterly brief | 48 projects (40 Active), 63.8% delivery, $23,373,194 spending and $5,650,105 baseline expected financial impact |
+| Portfolio filter set before opening Coworker | Coworker still uses the complete portfolio; return to another tab to resume the selection |
 | Unsupported prompt such as weather | Guided refusal; no invented portfolio facts |
 | Stop LM Studio, then ask with AI enabled | Clearly labelled fallback; no claim of model-generated success |
 

@@ -68,9 +68,9 @@ export const portfolioMetrics = (projects, bundle) => {
       ? round((sum(financials, "spent") / sum(financials, "budget")) * 100)
       : 0,
     deliverables: deliverables.length,
-    completed: deliverables.filter((d) => d.status === "Complete").length,
+    completed: deliverables.filter((d) => d.status === "Closed").length,
     overdue: deliverables.filter(
-      (d) => d.status !== "Complete" && d.dueDate < bundle.meta.asOf,
+      (d) => d.status !== "Closed" && d.dueDate < bundle.meta.asOf,
     ).length,
     staff: staff.length,
     fte: round(sum(staff, "fte")),

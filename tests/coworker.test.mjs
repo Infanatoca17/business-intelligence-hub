@@ -36,7 +36,7 @@ test('Quality findings preserve raw evidence and quarantines without changing cu
   assert.deepEqual(source, generateBundle());
 });
 test('Dashboard and assistant figures reconcile across program, office, status and individual project scopes', () => {
-  const scopes = [{}, ...source.programs.map(p => ({ program: p.name })), ...[...new Set(source.projects.map(p => p.office))].map(office => ({ office })), { status: 'Active' }, { status: 'Planned' }, { project: 'ATL-P001' }, { program: 'Health', office: 'Europe Hub', status: 'Active' }];
+  const scopes = [{}, ...source.programs.map(p => ({ program: p.name })), ...[...new Set(source.projects.map(p => p.office))].map(office => ({ office })), { status: 'Active' }, { status: 'Closed' }, { project: 'ATL-P001' }, { program: 'Health', office: 'Europe Hub', status: 'Active' }];
   for (const filters of scopes) {
     const d = selectScope(clean, filters);
     const m = portfolioMetrics(d.projects, d);
@@ -47,7 +47,7 @@ test('Dashboard and assistant figures reconcile across program, office, status a
     assert.ok(d.financials.every(r => ids.has(r.projectId)));
   }
 });
-test('Probabilities are explicit synthetic assumptions and closed threats are excluded', () => {
+test('Probabilities are explicit dummy assumptions and closed threats are excluded', () => {
   assert.deepEqual(source.assumptions.likelihoodProbabilities, { 1: .1, 2: .25, 3: .45, 4: .65, 5: .85 });
   const baseline = scenario(clean);
   const loss = source.risks.filter(r => r.status !== 'Closed').reduce((n, r) => n + (r.kind === 'Issue' ? 1 : source.assumptions.likelihoodProbabilities[r.likelihood]) * r.lossUsd, 0);
@@ -71,8 +71,8 @@ test('A hand-calculated project cost and expected loss agree with the scenario',
   assert.ok(Math.abs(r.expectedLoss - loss) < 1e-7);
   assert.ok(Math.abs(r.fundingGap - Math.max(0, execution + loss - f.budget * .8)) < 1e-7);
 });
-test('Planned projects and an empty scope keep projection gaps explicit', () => {
-  const planned = scenario(selectScope(clean, { status: 'Planned' }));
+test('Zero-progress projects and an empty scope keep projection gaps explicit', () => {
+  const planned = scenario(selectScope(clean, { project: clean.projects.filter(p => p.progress === 0).map(p => p.id) }));
   assert.equal(planned.projects, 4);
   assert.equal(planned.eligible, 0);
   assert.ok(planned.rows.every(r => r.execution === null && r.fundingGap === null));

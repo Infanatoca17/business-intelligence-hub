@@ -14,8 +14,8 @@ test('Fictional event chronology is valid and the current snapshot reproduces al
   }
   const rows = deliveryRowsAt(data.deliverables, data.meta.asOf, data.meta.asOf);
   assert.equal(rows.length, 288);
-  assert.equal(rows.filter(r => r.status === 'Complete').length, 139);
-  assert.equal(rows.filter(r => r.status === 'Overdue').length, 20);
+  assert.equal(rows.filter(r => r.status === 'Closed').length, 165);
+  assert.equal(rows.filter(r => r.status === 'Active' && r.dueDate < data.meta.asOf).length, 15);
   assert.deepEqual(rows.map(r => [r.id,r.status,r.completion]),data.deliverables.map(r => [r.id,r.status,r.completion]));
 });
 test('Quarter ends are UTC calendar cuts, exactly four per complete year, spanning first creation and final completion', () => {
@@ -25,13 +25,13 @@ test('Quarter ends are UTC calendar cuts, exactly four per complete year, spanni
   assert.ok(cuts[0].date >= data.deliverables.map(d => d.createdDate).sort()[0]);
   assert.ok(cuts.at(-1).date >= data.deliverables.map(d => d.completionDate).sort().at(-1));
 });
-test('A hand-defined deliverable moves through scheduled, in progress, overdue and completed states at the right boundaries', () => {
+test('A hand-defined deliverable moves through active and closed states at the right boundaries', () => {
   const r = { createdDate: '2025-01-01', startedDate: '2025-04-01', dueDate: '2025-06-30', completionDate: '2025-08-01' };
   assert.equal(deliveryStatusAt(r,'2024-12-31','2026-09-22'),null);
-  assert.equal(deliveryStatusAt(r,'2025-03-31','2026-09-22'),'Scheduled');
-  assert.equal(deliveryStatusAt(r,'2025-06-30','2026-09-22'),'In progress');
-  assert.equal(deliveryStatusAt(r,'2025-07-01','2026-09-22'),'Overdue');
-  assert.equal(deliveryStatusAt(r,'2025-09-30','2026-09-22'),'Complete');
+  assert.equal(deliveryStatusAt(r,'2025-03-31','2026-09-22'),'Active');
+  assert.equal(deliveryStatusAt(r,'2025-06-30','2026-09-22'),'Active');
+  assert.equal(deliveryStatusAt(r,'2025-07-01','2026-09-22'),'Active');
+  assert.equal(deliveryStatusAt(r,'2025-09-30','2026-09-22'),'Closed');
 });
 test('Every ribbon cut reconciles with table and export rows, with explicit simulations and no double counting', () => {
   for (const program of [null,...data.programs.map(p=>p.name)]) {
@@ -42,15 +42,15 @@ test('Every ribbon cut reconciles with table and export rows, with explicit simu
       assert.equal(new Set(rows.map(r=>r.id)).size,rows.length);
       for (const [status,count] of Object.entries(cut.counts)) assert.equal(count,rows.filter(r=>r.status===status).length);
       assert.ok(rows.every(r=>r.cutoffDate===cut.date && Number.isFinite(r.completion)));
-      assert.ok(rows.every(r=>r.historyMode===(cut.simulated?'Synthetic simulation':'Synthetic history')));
+      assert.ok(rows.every(r=>r.historyMode===(cut.simulated?'Dummy simulation':'Dummy history')));
     }
   }
 });
-test('Budget chart segments reconcile with every program budget and correctly separate planned projects', () => {
+test('Budget chart segments reconcile with every program budget and correctly separate closed projects', () => {
   const series=deliveryBudgetSeries(data.projects,data.programs);
   assert.equal(series.reduce((s,p)=>s+p.segments.reduce((n,r)=>n+r.value,0),0),36370000);
   for (const entry of series) assert.equal(entry.segments.reduce((n,r)=>n+r.value,0),data.projects.filter(p=>p.program===entry.label).reduce((n,p)=>n+p.budget,0));
-  assert.equal(series.reduce((n,p)=>n+p.segments.find(s=>s.label==='Planned').value,0),data.projects.filter(p=>p.status==='Planned').reduce((n,p)=>n+p.budget,0));
+  assert.equal(series.reduce((n,p)=>n+p.segments.find(s=>s.label==='Closed').value,0),data.projects.filter(p=>p.status==='Closed').reduce((n,p)=>n+p.budget,0));
 });
 test('Empty delivery and budget scopes have explicit empty results', () => {
   assert.deepEqual(quarterCuts([]),[]); assert.deepEqual(quarterlyDelivery([],data.meta.asOf),[]); assert.deepEqual(deliveryRowsAt([],'2026-06-30',data.meta.asOf),[]);

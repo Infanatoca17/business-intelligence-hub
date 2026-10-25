@@ -1,3 +1,4 @@
+const chooseFilter = (label: string, option: string) => { fireEvent.click(screen.getByRole("combobox", { name: label, exact: true })); fireEvent.click(screen.getByRole("option", { name: option, exact: true })); fireEvent.click(screen.getByRole("button", { name: "Done", exact: true })); };
 import React from 'react';
 import { beforeEach, afterEach, test, expect, vi } from 'vitest';
 import { render, screen, within, fireEvent, cleanup } from '@testing-library/react';
@@ -32,34 +33,26 @@ test('Navigation is compact, optional routes are hidden, and Coworker has a dedi
 });
 test('Global filters have the requested order and office labels, including compatible old URLs',()=>{
   window.history.replaceState(null,'','?office=Europe%20Hub');render(<App/>);
-  expect(screen.getByLabelText('Leading office').value).toBe('Europe');
+  expect(screen.getByLabelText('Leading office').textContent).toContain('Europe');
   const filters=document.querySelector('.filters')!;
   expect(within(filters as HTMLElement).getAllByRole('combobox').map(s=>s.getAttribute('aria-label'))).toEqual(['Program','Project','Leading office','Project status']);
-  expect(within(screen.getByLabelText('Leading office')).getAllByRole('option').map(o=>o.textContent)).toEqual(['All offices','Americas','Europe','Africa','South Asia','East Asia','Oceania']);
+  fireEvent.click(screen.getByLabelText('Leading office')); expect(screen.getAllByRole('option').map(o=>o.textContent?.replace('✓',''))).toEqual(['All offices','Americas','Europe','Africa','South Asia','East Asia','Oceania']);
 });
-test('Risks has a persistent internal toggle and the removed matrix is absent',()=>{
-  render(<App/>);nav('Risks');expect(screen.getByLabelText('Risks status')).toBeTruthy();
-  fireEvent.click(screen.getByRole('button',{name:'Risk scenarios',exact:true}));
-  expect(screen.getByRole('heading',{level:1}).textContent).toBe('Risks');
-  expect(new URL(window.location.href).searchParams.get('risk-view')).toBe('scenarios');
-  expect(screen.queryByRole('table',{name:'Threat matrix'})).toBeNull();
-  expect(screen.queryByText('Baseline impact × likelihood')).toBeNull();
-  const original=screen.getByTestId('cw-gap').textContent;
-  fireEvent.change(screen.getByRole('slider',{name:'Funding reduction'}),{target:{value:20}});
-  const changed=screen.getByTestId('cw-gap').textContent;expect(changed).not.toBe(original);
-  fireEvent.click(screen.getByRole('button',{name:'Risk register',exact:true}));
+test('Risks and Issues show only the register, including compatible old scenario URLs',()=>{
+  window.history.replaceState(null,'','?view=risk-scenarios');render(<App/>);
   expect(screen.getByRole('table',{name:'Risks register'})).toBeTruthy();
-  fireEvent.click(screen.getByRole('button',{name:'Risk scenarios',exact:true}));expect(screen.getByTestId('cw-gap').textContent).toBe(changed);
+  expect(screen.queryByRole('button',{name:'Risk scenarios',exact:true})).toBeNull();
+  expect(screen.queryByRole('slider',{name:'Funding reduction'})).toBeNull();
   nav('Issues');expect(screen.getByLabelText('Issues status')).toBeTruthy();
 });
 test('Quarter labels and ribbon keyboard selection scope the register, KPIs and typed exports to the same date',()=>{
   render(<App/>);nav('Deliverables');
-  fireEvent.click(screen.getByRole('button',{name:'Filter all deliverables at Q2 2026 (2026-06-30)',exact:true}));
+  fireEvent.click(screen.getByRole('button',{name:'Filter active deliverables at Q2 2026 (2026-06-30)',exact:true}));
   const rows=deliveryRowsAt(data.deliverables,'2026-06-30',data.meta.asOf);
-  expect(screen.getByText('Deliverables',{exact:true,selector:'.kpi-label'}).closest('button')!.querySelector('strong')!.textContent).toBe(String(rows.length));
-  fireEvent.keyDown(screen.getByRole('button',{name:'Filter ribbon Complete'}),{key:'Enter'});
-  const complete=rows.filter(r=>r.status==='Complete');
-  expect(screen.getByLabelText('Deliverable status').value).toBe('Complete');
+  expect(screen.getByText('Deliverables',{exact:true,selector:'.kpi-label'}).closest('button')!.querySelector('strong')!.textContent).toBe(String(rows.filter(r=>r.status==='Active').length));
+  fireEvent.keyDown(screen.getByRole('button',{name:'Filter ribbon Closed'}),{key:'Enter'});
+  const complete=rows.filter(r=>r.status==='Closed');
+  expect(screen.getByLabelText('Deliverable status').textContent).toContain('Closed');
   expect(screen.getByText('Deliverables',{exact:true,selector:'.kpi-label'}).closest('button')!.querySelector('strong')!.textContent).toBe(String(complete.length));
   expect(new URL(window.location.href).searchParams.get('deliverable-cut')).toBe('2026-06-30');
   const workbook=createWorkbookSheets(complete,'Deliverables as of 2026-06-30');
@@ -78,13 +71,13 @@ test('Deliverables starts with KPIs, then paired charts, the compact ribbon, and
   const panel=ribbon.closest('section')!;
   const table=screen.getByRole('table',{name:'Deliverable register'});
   const before=(a:Element,b:Element)=>expect(a.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  before(kpis,controls);before(kpis,status);before(status,panel);before(panel,table);
+  before(controls,kpis);before(kpis,status);before(status,panel);before(panel,table);
   expect(status).toBe(program);expect(panel.parentElement).toBe(status.parentElement);
   expect(ribbon.getAttribute('viewBox')?.split(' ')[3]).toBe('260');
   expect(screen.queryByText('Quarterly deliverable status ribbon')).toBeNull();
   expect(panel.querySelector('.chart-caption')).toBeNull();
-  expect(panel.textContent).not.toContain('Synthetic event history from first creation');
-  expect(panel.textContent).toContain('Synthetic simulation');
+  expect(panel.textContent).not.toContain('Quarter-end cuts');
+  expect(panel.textContent).toContain('Simulated');
 });
 const readXml=(zip:Record<string,Uint8Array>,path:string)=>new DOMParser().parseFromString(strFromU8(zip[path]),'application/xml');
 const cellText=(zip:Record<string,Uint8Array>,cell:Element)=>{
@@ -115,10 +108,10 @@ function checkHeader(zip:Record<string,Uint8Array>,ref:string){
   return sheet;
 }
 test('Saved XLSX has white headers and filters over every selected historical record without changing numbers',async()=>{
-  const rows=deliveryRowsAt(data.deliverables,'2026-06-30',data.meta.asOf).filter(r=>r.status==='Complete');
+  const rows=deliveryRowsAt(data.deliverables,'2026-06-30',data.meta.asOf).filter(r=>r.status==='Closed');
   const zip=await savedWorkbook(rows,'Deliverables as of 2026-06-30');
-  // Historical export has 21 columns and 79 records, plus the header.
-  const sheet=checkHeader(zip,'A1:U80');
+  // Historical export has 21 columns; extent follows the selected rows.
+  const sheet=checkHeader(zip,`A1:U${rows.length+1}`);
   expect(sheet.querySelectorAll('sheetData > row').length).toBe(rows.length+1);
   const keys=Object.keys(rows[0]);
   expect(Array.from(sheet.querySelector('row[r="1"]')!.children).map(cell=>cellText(zip,cell))).toEqual(keys);
@@ -148,6 +141,41 @@ test('Chart exports are PNG only, project budgets are a second chart, and footer
   expect(screen.queryByRole('button',{name:'Back to Overview ↗'})).toBeNull();
   nav('Projects');expect(screen.getByRole('img',{name:'Project progress tracker'})).toBeTruthy();expect(screen.getByRole('img',{name:'Budget by delivery status'})).toBeTruthy();
   fireEvent.click(screen.getByRole('button',{name:'Filter Health Behind schedule'}));
-  expect(screen.getByLabelText('Program',{exact:true}).value).toBe('Health');expect(screen.getByLabelText('Schedule').value).toBe('Behind schedule');
+  expect(screen.getByLabelText('Program',{exact:true}).textContent).toContain('Health');expect(screen.getByLabelText('Schedule').textContent).toContain('Behind schedule');
   fireEvent.click(screen.getByRole('button',{name:'Back to Overview ↗'}));expect(screen.getByRole('heading',{level:1}).textContent).toBe('The bigger picture.');
+});
+
+test('Multiple programs and offices combine, persist in the URL, remove individually and reset',()=>{
+  render(<App/>); nav('Projects');
+  fireEvent.click(screen.getByRole('combobox',{name:'Program',exact:true}));
+  fireEvent.click(screen.getByRole('option',{name:'Health',exact:true}));
+  fireEvent.click(screen.getByRole('option',{name:'Education',exact:true}));
+  fireEvent.click(screen.getByRole('button',{name:'Done',exact:true}));
+  chooseFilter('Leading office','Americas'); chooseFilter('Project status','Active');
+  const expected=data.projects.filter(p=>['Health','Education'].includes(p.program)&&p.office==='Americas'&&p.status==='Active');
+  expect(screen.getByText(`${expected.length} projects in scope`)).toBeTruthy();
+  expect(new URL(window.location.href).searchParams.getAll('program')).toEqual(['Health','Education']);
+  fireEvent.click(screen.getByRole('button',{name:'Remove Program: Health'}));
+  expect(screen.getByText('2 projects in scope')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button',{name:/Reset filters/}));
+  expect(screen.queryByLabelText('Active filters')).toBeNull();expect(screen.getByText('48 projects in scope')).toBeTruthy();
+});
+test('Requested program and status charts are pies and the simplified columns are absent',()=>{
+  render(<App/>);
+  for(const [view,title] of [['Deliverables','Deliverables by program'],['Staff','Staff by Program'],['Financials','Budget by program'],['Funding Pipeline','Requested amount by program'],['Risks','Risks by status'],['Issues','Issues by status']]){
+    nav(view);expect(screen.getByRole('img',{name:title}).closest('.pie-panel')).toBeTruthy();
+  }
+  nav('Projects');const projects=screen.getByRole('table',{name:'Project directory'});
+  expect(within(projects).queryByRole('columnheader',{name:/Exposure|Expected consequences/})).toBeNull();
+  nav('Staff');const staff=screen.getByRole('table',{name:'Staff allocations'});
+  expect(within(staff).queryByRole('columnheader',{name:/FTE|Hours/})).toBeNull();
+});
+test('Risk financial impact displays gross loss and exports contain only dummy terminology',async()=>{
+  render(<App/>);nav('Risks');
+  const risk=data.risks.find(r=>r.kind==='Risk')!;
+  const row=screen.getByRole('table',{name:'Risks register'}).querySelector('tbody tr')!;
+  expect(row.textContent).toContain(new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(risk.lossUsd));
+  const sheets=createWorkbookSheets(data.risks,'Risks');
+  const zip=unzipSync(await writeExcelFile(sheets,createWorkbookOptions(sheets)).toBuffer());
+  expect(Object.values(zip).map(strFromU8).join('')).not.toMatch(/synthetic/i);
 });

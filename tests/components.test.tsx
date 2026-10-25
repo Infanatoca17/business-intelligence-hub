@@ -1,3 +1,4 @@
+const chooseFilter = (label: string, option: string) => { fireEvent.click(screen.getByRole("combobox", { name: label, exact: true })); fireEvent.click(screen.getByRole("option", { name: option, exact: true })); fireEvent.click(screen.getByRole("button", { name: "Done", exact: true })); };
 import React from "react";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import {
@@ -131,9 +132,7 @@ test("Eight views render meaningful data with no missing-data text", () => {
 });
 test("Global scope persists across navigation and resets correctly", () => {
   render(<App />);
-  fireEvent.change(screen.getByLabelText("Program", { exact: true }), {
-    target: { value: "Health" },
-  });
+  chooseFilter('Program', 'Health');
   expect(screen.getByText("12 projects in scope")).toBeTruthy();
   navigate("Projects");
   const table = screen.getByRole("table", { name: "Project directory" });
@@ -210,9 +209,8 @@ test("Project deep links load correctly and invalid IDs are ignored", () => {
     screen.getByRole("dialog", { name: "Project 360" }).textContent,
   ).toContain("Learning Without Limits");
   expect(
-    (screen.getByLabelText("Program", { exact: true }) as HTMLSelectElement)
-      .value,
-  ).toBe("Education");
+    screen.getByLabelText("Program", { exact: true }).textContent,
+  ).toContain("Education");
   cleanup();
   window.history.replaceState(null, "", "?view=bad&project=bad&program=bad");
   render(<App />);
@@ -224,9 +222,7 @@ test("Project deep links load correctly and invalid IDs are ignored", () => {
 test("Funding totals reflect stage filters and table exports share that scope", () => {
   render(<App />);
   navigate("Funding Pipeline");
-  fireEvent.change(screen.getByLabelText("Opportunity stage"), {
-    target: { value: "Negotiation" },
-  });
+  chooseFilter('Opportunity stage', 'Negotiation');
   const expected = bundle.funding
     .filter((f) => f.stage === "Negotiation")
     .reduce((n, f) => n + f.requested, 0);
@@ -246,12 +242,10 @@ test("Chart controls and empty-state combinations do not invent data", () => {
   fireEvent.click(
     screen.getByRole("button", { name: "Filter Critical", exact: true }),
   );
-  expect((screen.getByLabelText("Severity") as HTMLSelectElement).value).toBe(
+  expect(screen.getByLabelText("Severity").textContent).toContain(
     "Critical",
   );
-  fireEvent.change(screen.getByLabelText("Category", { exact: true }), {
-    target: { value: "Delivery" },
-  });
+  chooseFilter('Category', 'Delivery');
   expect(
     screen.getByText(
       "No records match these filters. Clear a filter to explore the portfolio.",

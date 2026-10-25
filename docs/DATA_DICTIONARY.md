@@ -1,4 +1,4 @@
-# Synthetic data contract — Atlas Business Intelligence Hub v1.2.0
+# Dummy data contract — Atlas Business Intelligence Hub v1.2.0
 
 `scripts/generate-data.mjs` deterministically generates `src/data/atlas-bundle.json`. It does not ingest reference archives or organizational reports. Business identifiers use `ATL-` prefixes; people, emails, sites and donors are fictional. The canonical bundle has populated business fields. The retained defect sample intentionally includes invalid/missing fields for engine/component tests; its UI is disabled in this release. Scenario nulls explicitly mean a projection is unavailable.
 
@@ -6,7 +6,7 @@
 |---|---:|---|---|
 | programs | 4 | id | Program name, color, description and three teams |
 | projects | 48 | id | programId, locationId, planId; owner, dates, objectives, status, deliverable-derived progress, expected progress, exposure, expectedLossUsd |
-| deliverables | 288 | id | projectId; six per project; completion 0–100%, status, assignee, due date, budget; synthetic createdDate, startedDate, completionDate, historyProvenance |
+| deliverables | 288 | id | projectId; six per project; completion 0–100%, status, assignee, due date, budget; dummy createdDate, startedDate, completionDate, historyProvenance |
 | plans | 48 | id | projectId; response approach, owner, review dates, status |
 | risks | 144 | id | projectId, planId; 96 risks + 48 issues; kind, impact, likelihood, probability, lossUsd, expectedLossUsd, delayDays, score, owner, response action, deadline |
 | staff | 96 | id | projectId; unique fictional person, role, .example email, FTE, weekly hours |
@@ -14,24 +14,26 @@
 | funding | 24 | id | projectId; fictional donor, stage, stage probability, requested amount, decision date |
 | locations | 24 | id | Fictional site name/office, illustrative coordinates, public country names |
 | observations | 576 | id | projectId + period unique; month YYYY-MM, observedAt, reportedAt, six deliverableCompletions, derived progress, expected, cumulative spent |
-| documents | 6 | id | title and synthetic policy/evidence text |
+| documents | 6 | id | title and dummy policy/evidence text |
 | assumptions | object | — | scheduleTolerance 7, likelihoodProbabilities, capacityCostFactor 0.30, currency, probability basis |
 | meta | object | — | Official product, short productLabel, fictional organization name, version 1.2.0, asOf 2026-09-22, Q3 2026, dummy-data disclaimer |
 
-Every canonical downstream project reference resolves. A project has six deliverables, three threats, two staff, one financial record, one response plan and twelve observations. Funding exists for half the projects; an empty funding table means no additional opportunity. Planned projects have zero current progress/spending and are excluded from execution projections.
+Every canonical downstream project reference resolves. A project has six deliverables, three threats, two staff, one financial record, one response plan and twelve observations. Funding exists for half the projects; an empty funding table means no additional opportunity. Future-start Active projects have zero current progress/spending and are excluded from execution projections.
+
+All projects, deliverables, threats, staff allocations and response plans use Active/Closed status. The eight Closed projects (two in every program) have ended timelines, six closed deliverables and three closed threats each. Management-action workflow and opportunity stage retain their existing values. `lossUsd` is gross financial impact if a threat materializes; `expectedLossUsd` is probability-weighted loss, zero for closed threats.
 
 ## Deliverable events and cutoff rows
 
 | Field | Meaning |
 |---|---|
-| `createdDate` | Synthetic creation date, ISO UTC calendar date; may precede project start |
-| `startedDate` | Synthetic execution start, no earlier than creation |
-| `completionDate` | Synthetic completion event; future dates are simulated, not actual delivery records |
-| `historyProvenance` | Explicit synthetic event/simulation notice |
+| `createdDate` | Dummy creation date, ISO UTC calendar date; may precede project start |
+| `startedDate` | Dummy execution start, no earlier than creation |
+| `completionDate` | Dummy completion event; future dates are simulated, not actual delivery records |
+| `historyProvenance` | Explicit dummy event/simulation notice |
 | `cutoffDate` | Runtime/export field, selected quarter end or the current snapshot |
-| `historyMode` | Runtime/export field: Current snapshot, Synthetic history or Synthetic simulation |
+| `historyMode` | Runtime/export field: Current snapshot, Dummy history or Dummy simulation |
 
-The saved `status` and `completion` continue to describe **2026-09-22**. Historical rows are derived copies; filtering does not mutate the saved bundle. Status values are Scheduled, In progress, Complete and Overdue (the ribbon legend displays In Progress). Creation/start/completion dates are independent synthetic event assumptions, not imported monthly evidence. See [METHODOLOGY.md](METHODOLOGY.md).
+The saved `status` and `completion` continue to describe **2026-09-22**. Historical rows are derived copies; filtering does not mutate the saved bundle. Status values are Active and Closed; closed deliverables are 100% complete. Overdue is a date-based measure for Active records, not a third lifecycle category. Creation/start/completion dates are independent dummy event assumptions, not imported monthly evidence. See [METHODOLOGY.md](METHODOLOGY.md).
 
 Leading office values are **Americas, Europe, Africa, South Asia, East Asia, Oceania**, with no Hub suffix. Old frontend URLs ending in `office=... Hub` are normalized to the corresponding new label.
 
@@ -46,7 +48,7 @@ Leading office values are **Americas, Europe, Africa, South Asia, East Asia, Oce
 
 ## Monthly observations and documents
 
-Observations cover October 2025–September 2026. `deliverableCompletions` contains six `{id, completion}` records, whose mean yields historical progress. Spending is cumulative, never a monthly delta. September's `observedAt` is the snapshot date. The generator's interpolation is synthetic and must not be described as measured history.
+Observations cover October 2025–September 2026. `deliverableCompletions` contains six `{id, completion}` records, whose mean yields historical progress. Spending is cumulative, never a monthly delta. September's `observedAt` is the snapshot date. The generator's interpolation is dummy and must not be described as measured history.
 
 | Document ID | Contents |
 |---|---|

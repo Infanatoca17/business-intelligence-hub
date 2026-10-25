@@ -1,5 +1,16 @@
 # Atlas Business Intelligence Hub — v1.2.0 UI refresh
 
+## UI update — 23 October 2026
+
+- Dummy-data terminology throughout UI, documentation, generated data and exports.
+- Rounded KPIs/filters, soft chart surfaces, animated multiselect dropdowns, active-filter chips and prominent reset.
+- Active/Closed lifecycle, eight coherent closed project examples and refreshed matching calculations.
+- Requested program/status distributions are pie charts; simplified KPI/table labels and moved schedule/deliverable/stage controls.
+- Risks/Issues register-only views; gross financial impact columns use lossUsd.
+- Coworker starts unanswered, prompts move beneath the input, uses the complete portfolio, and links to README local LM Studio instructions. Same-origin API, ports, dependencies and Pages workflow preserved.
+
+Earlier notes below describe historical releases.
+
 Prepared 6 October 2026 from the previously delivered v1.1.1 Coworker source. New branch: **atlas_ui_refresh**. Product/organization/assistant identities remain Atlas Business Intelligence Hub / Atlas Impact Network / Coworker.
 
 - Centered eight-tab navigation; Data Quality, Executive Brief and Methodology disabled in the UI with code retained. Coworker has a highlighted header entry.
@@ -7,7 +18,7 @@ Prepared 6 October 2026 from the previously delivered v1.1.1 Coworker source. Ne
 - Embedded Risk Scenarios toggle within Risks; conditional Risks/Issues status labels; entire baseline matrix section hidden.
 - Vertical bars throughout; PNG-only chart download; Back to Overview footer navigation.
 - Six Overview/five Financials desktop KPI cards; pale straw middle exposure band; equal-width Projects progress and approved-budget allocation charts.
-- Quarterly Deliverables ribbon with date/status filtering and matching tables/workbooks. Synthetic event dates added; future cuts labelled simulations. Current snapshot and financial/risk calculations unchanged.
+- Quarterly Deliverables ribbon with date/status filtering and matching tables/workbooks. Dummy event dates added; future cuts labelled simulations. Current snapshot and financial/risk calculations unchanged.
 - Removed Coworker's readiness strip and separate Sources section while retaining compact citations and all local model controls. Python source/default 8765 port unchanged; LM Studio remains configured at 1234.
 - Updated README, data contract, methodology, local AI guide, walkthrough, validation and incremental branch-update instructions.
 
@@ -28,7 +39,7 @@ Prepared 5 October 2026 for `atlas_coworker_integration`, using the uploaded bra
 - Reapplied the full 48-project Coworker integration to the supplied v1.0.0 branch source: monthly observations, evidence, common metrics, React views, Python service and LM Studio adapter.
 - Set the official product name to **Atlas Business Intelligence Hub**, with **Business Intelligence Hub** as the short UI label.
 - Updated browser metadata, header/eyebrow, footer, About, workbook/chart metadata and executive Markdown title. Organization branding remains Atlas Impact Network.
-- Updated the top banner to **Independent Demo | All Data is Synthetic | About the Data**, with both separators retained on mobile.
+- Updated the top banner to **Independent Demo | All Data is Dummy | About the Data**, with both separators retained on mobile.
 - Set the package version to 1.1.1 and updated the single workflow and guides to the exact underscore-separated branch name.
 - Included steps for selecting/renaming the local integration branch, pushing its exact new name, validating, publishing and enabling LM Studio.
 
@@ -44,7 +55,7 @@ Prepared 5 October 2026 for the existing `atlas_coworker_integration` branch. Th
 
 ## Result
 
-One React application combines the Atlas portfolio and Coworker reporting workflow. The 48-project base is retained, with 576 deterministic monthly observations, six synthetic evidence documents and explicit financial/probability assumptions. All business data remains fictional.
+One React application combines the Atlas portfolio and Coworker reporting workflow. The 48-project base is retained, with 576 deterministic monthly observations, six dummy evidence documents and explicit financial/probability assumptions. All business data remains fictional.
 
 - Added Coworker, Data Quality, Risk Scenarios, Executive Brief and Methodology React views, inspectable evidence, common project scope and quality sample controls.
 - Changed schedule tolerance from the v1.0 demonstration's 10 to **7 percentage points**, retaining deliverable-derived progress.
