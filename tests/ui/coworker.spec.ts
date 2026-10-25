@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { unzipSync, strFromU8 } from 'fflate';
 import { prepareSample, coworkerFacts, dollars, guidedAnswer } from '../../src/coworker-engine.mjs';
 import { chooseFilter } from './filter-helpers';
 const raw = JSON.parse(readFileSync(new URL('../../src/data/atlas-bundle.json', import.meta.url), 'utf8'));
 const nav = async (page: any, name: string) => name === 'Coworker' ? page.getByRole('button', { name: 'Open Coworker' }).click() : page.getByRole('navigation').getByRole('button', { name, exact: true }).click();
-test('Coworker waits for Ask, uses the whole portfolio and exports matching verified figures', async ({ page }) => {
+test('Coworker waits for Ask, uses the whole portfolio and presents matching verified figures', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('./'); await chooseFilter(page, 'Program', 'Health'); await nav(page, 'Coworker');
   const m = coworkerFacts(prepareSample(raw).data);
@@ -20,11 +19,8 @@ test('Coworker waits for Ask, uses the whole portfolio and exports matching veri
   await expect(page.getByRole('heading', { name: 'Portfolio assessment' })).toBeVisible();
   await expect(page.getByText('Guided demo', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'CALC-PORTFOLIO', exact: true })).toHaveCount(0);
-  const download = page.waitForEvent('download'); await page.getByRole('button', { name: 'Export current view', exact: true }).click();
-  const zip = unzipSync(readFileSync((await (await download).path())!));
-  const xml = strFromU8(zip['xl/worksheets/sheet1.xml']);
-  expect(xml).toContain(`<v>${m.spent}</v>`); expect(xml).toContain(`<v>${m.actual}</v>`);
-  expect(Object.values(zip).map(strFromU8).join('')).not.toMatch(/synthetic/i);
+  await expect(page.getByRole('button', { name: 'Export current view', exact: true })).toHaveCount(0);
+  await expect(page.getByText('Canonical dummy sample', { exact: true })).toHaveCount(0);
   await page.screenshot({ path: 'test-results/coworker-desktop.png', fullPage: true });
   expect(errors).toEqual([]);
 });
@@ -42,7 +38,8 @@ test('Risks exposes only the register and gross financial impact with binary sta
   const table = page.getByRole('table', { name: 'Risks register' });
   await expect(table.getByRole('columnheader', { name: /Financial impact if risk materializes/ })).toBeVisible();
   await expect(table.locator('tbody tr').first()).toContainText('Closed');
-  await nav(page, 'Issues'); await expect(page.getByRole('table', { name: 'Issues register' }).getByRole('columnheader', { name: /Financial impact if issue materializes/ })).toBeVisible();
+  await expect(page.getByRole('navigation').getByRole('button', { name: 'Issues', exact: true })).toHaveCount(0);
+  await page.goto('./?view=issues'); await expect(page.getByRole('heading', { name: 'Risks', level: 1 })).toBeVisible();
 });
 test('LM Studio mode and fallback remain explicit', async ({ page }) => {
   await page.route('**/api/status', route => route.fulfill({ json: { local_server: true, provider: 'LM Studio', reachable: true, model_available: true, model: 'mock-browser-model' } }));

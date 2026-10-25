@@ -2,7 +2,7 @@
 
 **Fictional organization:** Atlas Impact Network
 
-**AI Assistant:** Coworker · **Version:** 1.2.0 · UI update 23 October 2026
+**AI Assistant:** Coworker · **Version:** 1.2.0 · UI update 25 October 2026
 
 **Portfolio owner:** [Ivan Morales · Infanatoca17](https://github.com/Infanatoca17)
 
@@ -35,16 +35,16 @@ Coworker is an AI Assistant: It connects portfolio and project reporting data, e
 | Staff | Atlas Staff, weekly hours and Active Teams KPIs; staff-count pie by program and office hours chart |
 | Financials | FY Total Budget, expenditure, forecast, burn rate; budget pie by program and financial register |
 | Funding Pipeline | Multiselect opportunity stage in the filter bar; requested amount, opportunities, secured amount and program pie |
-| Risks / Issues | Register-only views with Active/Closed status pies, severity/category/impact filters, probability and gross financial impact |
-| Coworker | Full-portfolio verified facts; editable example question; responses only after Ask Coworker; guided, local AI and fallback modes visibly distinguished |
+| Risks | Register-only view with an Active/Closed status pie, severity/category/impact filters, probability and gross financial impact |
+| Coworker | Compact fact cards and prompt area, with examples visible in the first desktop viewport; editable example question; responses only after Ask Coworker; guided, local AI and fallback modes visibly distinguished |
 | Project 360 | Profile, deliverables, response plan, risks/issues, staffing, financials, funding and copyable URL |
 | Search / help | Cross-portfolio search and methodology/data help |
 
-All search-criteria dropdowns support multiple selections: **OR within a criterion, AND across criteria**. Selected controls are highlighted; removable chips identify every active filter. Reset filters clears the full portfolio selection. Scope and view-specific filters survive URL reloads. Chart clicks select one category.
+All search-criteria dropdowns support multiple selections: **OR within a criterion, AND across criteria**. Selected controls are highlighted; removable chips identify every active filter. Reset filters clears the full portfolio selection. Scope and view-specific filters survive URL reloads. Chart clicks select one category. The filter group is centered inside its rounded frame; the former project-count label is removed. Review delivery opens the filtered Projects view at the top of the page.
 
 Status is **Active** or **Closed** for projects, deliverables, threats, staff allocations and response plans. Closed deliverables are 100% complete; an active deliverable is overdue when its due date precedes the cutoff. Schedule bands, opportunity stages and management-action workflow remain distinct from lifecycle status.
 
-Charts export as **PNG**. Tables and current views export as **XLSX**, retaining numeric cells, white headers, worksheet filters and the dummy-data notice. The optional quality, scenario, brief and methodology components/calculations remain in source but are hidden from standard navigation. Risks displays its register only.
+Charts export as **PNG**. Portfolio tables and current views export as **XLSX**, retaining numeric cells, white headers, worksheet filters and the dummy-data notice. The optional quality, scenario, brief and methodology components/calculations remain in source but are hidden from standard navigation. Risks displays its register only. The Issues tab is removed; its records remain in Project 360 and shared calculations. Legacy Issues URLs open Risks.
 
 ## Data and methodology
 
@@ -116,7 +116,7 @@ The public [Coworker demo](https://infanatoca17.github.io/business-intelligence-
 
 5. Open [local Coworker](http://127.0.0.1:8765/business-intelligence-hub/?view=coworker), click **Check connection**, enable **Use local AI**, and press **Ask Coworker**. Confirm **Local AI · LM Studio** and compare the narrative with verified figures.
 
-Coworker always uses the complete current-snapshot portfolio. Portfolio filters remain available when you return to another tab. Selecting a sample question only fills the prompt. Changing the question clears the previous response. Public Pages does not connect to your local model in this update; the same-origin service configuration is preserved.
+Coworker always uses the complete current-snapshot portfolio. Its sample label and current-view export button are removed. The compact layout fits the four cards, input and example prompts into the initial 1366 × 768 and 1280 × 720 desktop views at 100% zoom. Smaller screens and generated responses can scroll naturally. Portfolio filters remain available when you return to another tab. Selecting a sample question only fills the prompt. Changing the question clears the previous response. Public Pages does not connect to your local model in this update; the same-origin service configuration is preserved.
 
 If your server requires authentication, use `LM_STUDIO_API_KEY` in the Python terminal and an Authorization header when listing models. Keep tokens and model weights out of Git. See [the detailed setup and troubleshooting guide](docs/LM_STUDIO_SETUP.md).
 

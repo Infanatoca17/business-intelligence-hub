@@ -25,7 +25,7 @@ test('Coworker uses the full portfolio while hidden filters remain available in 
   expect(screen.getByTestId('cw-progress').textContent).toBe(`${m.actual.toFixed(1)}%`);
   expect(screen.queryByRole('combobox', { name: 'Program' })).toBeNull();
   expect(screen.queryByRole('heading', { name: 'Portfolio assessment' })).toBeNull();
-  nav('Projects'); expect(screen.getByText('12 projects in scope')).toBeTruthy();
+  nav('Projects'); expect(screen.getByText('Total projects', { selector: '.kpi-label' }).closest('button')!.querySelector('strong')!.textContent).toBe('12');
 });
 test('Quality sample applies globally and blocks brief review until corrected', () => {
   render(<RetainedWorkspaces />); nav('Data Quality');

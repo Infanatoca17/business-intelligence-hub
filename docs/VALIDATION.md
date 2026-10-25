@@ -1,6 +1,6 @@
-# Validation record — Atlas UI update, 23 October 2026
+# Validation record — Atlas UI polish, 25 October 2026
 
-Baseline: the supplied `business-intelligence-hub-main 23.10.26.zip`, identified in its ZIP comment as commit `060548f6306a7e82b1c382c87056df7bada4a97b`. The snapshot stays **22 September 2026**, with newly requested closed examples. Technical package version remains 1.2.0.
+Baseline: the delivered **Atlas_Full_Source_2026-10-23.zip**. This is a focused presentation update on top of that checkpoint. Technical package version remains 1.2.0 and the business snapshot remains **22 September 2026**.
 
 ## Executed checks
 
@@ -9,35 +9,32 @@ Baseline: the supplied `business-intelligence-hub-main 23.10.26.zip`, identified
 | Node data, engine and history tests | 23 passed |
 | React component tests, jsdom | 32 passed |
 | Python service / LM Studio contract tests | 12 passed |
-| Chromium browser tests | 14 passed |
+| Chromium browser tests | 18 passed |
 | TypeScript | Passed |
 | Production build and static output audit | Passed |
-| Desktop/mobile visual inspection | All eight portfolio views, Coworker, multiselect popup and narrow layouts reviewed |
-| Incremental package integrity | Baseline plus UPDATE_FILES reconstructed and compared byte-for-byte to the complete source; ZIP CRC verified |
+| Visual inspection | Centered filter frame, compact desktop Coworker and readable mobile stacking reviewed |
+| Package integrity | Baseline plus incremental UPDATE_FILES reconstructed and compared with the complete source; ZIP CRC verified |
 
-**81 automated tests passed.** Build warnings about chunk size are informational; dependencies and bundler configuration were preserved.
+**85 automated tests passed.** The build's existing chunk-size advisory remains informational. No dependency or bundler changes were made.
 
-Browser checks used Chromium 153 with the existing executable/argument environment overrides. The normal Playwright browser download was unavailable in this environment, so an external QA-only Chromium binary was used without changing the repository's dependencies, lockfile or browser configuration. The suite ran against the built app, including actual XLSX/PNG downloads, desktop/narrow layouts, keyboard controls, multiselect intersection/persistence/reset, register-only Risks/Issues, quarterly status/cutoff reconciliation and mocked local AI/fallback presentation. Browser screenshots were inspected as temporary QA evidence, and are not included in the source deliverables.
+Browser checks used the existing executable/argument environment overrides with a QA-only Chromium 153 binary outside the repository. No browser dependency or configuration was added to the deliverables. Temporary screenshots were inspected and are not included in source archives.
 
-Data and component coverage checks Active/Closed examples in all programs, preserved identifiers/relationships/counts, closure/completion/exposure reconciliation, gross versus probability-weighted financial impact, typed spreadsheet cells, white headers and worksheet filters. Retained quality, scenario and review components remain tested through direct component hosts even though standard navigation hides them.
+## New behavior verified
 
-Python checks exercise the real local HTTP boundary and mock model/chat endpoints, schema/citation validation, optional authentication, fallback, scalar/multiselect scope and binary status. They do **not** run Qwen weights. Real model inference must be evaluated on the owner's computer using README / LM_STUDIO_SETUP.md before claiming inference success for this update.
+- Seven portfolio tabs; Issues no longer appears. Old `?view=issues` URLs open Risks. Issue records remain available to Project 360 and the shared calculation engine.
+- The project-count label is absent from every filter bar. All seven views have equal left/right insets, and the labeled filter group has equal top/bottom insets within the rounded frame.
+- Overview's exposure and financial-impact labels match the requested text; their values still use the existing calculations.
+- Review delivery is tested after scrolling to the lower-page button with Health selected. The resulting Projects view starts at scroll position zero, preserves Health, applies Behind schedule, and shows the correct matching project count.
+- Coworker's toolbar, sample pill and current-view export button are absent. The model-listing explanation is removed. Check connection, model ID, Use local AI, guided/local/fallback mode labels and response handling remain functional.
+- At 100% zoom, all four fact cards, the textarea and all four example prompts fit the initial **1366 × 768**, **1280 × 720** and **1366 × 640** browser viewports. The compact layout adapts to shorter desktop windows. Mobile content and long generated responses retain normal scrolling.
+- No response appears before Ask Coworker; example buttons only populate the textarea. Answer generation still works in guided and mocked local modes.
 
-## Preserved configuration
+Existing browser checks also cover dropdown keyboard interaction, multiselect intersection/persistence/reset, Project 360, PNG/XLSX downloads, historical quarter reconciliation, hidden routes, narrow-screen overflow, and mock AI fallback.
 
-- Package and lockfile, Node version setting, TypeScript/Vite configuration, Pages workflow, deployment base, third-party notices and geography remain unchanged.
-- Application/API default remains **8765**; LM Studio remains **http://127.0.0.1:1234/v1**.
-- API stays same-origin and localhost-only. This update does not connect public Pages to a user's local service.
-- No remote commit, push, PR, merge or deployment was performed.
+## Preserved source and limits
 
-## Intentional behavior and data changes
+Dataset, generator, calculation engines, exports module, geography, Python service, ports, dependency files, deployment base, TypeScript/Vite configuration, third-party notices and the single Pages workflow are byte-identical to the 23 October baseline. Updated files are presentation code, related tests and documentation only.
 
-- 48 projects: 40 Active, 8 Closed, two closed examples per program. Four future-start projects remain Active at zero progress/spending.
-- 288 deliverables: 165 Closed, 123 Active, including 15 overdue Active. Status is binary; completion and due dates remain independent measures.
-- Snapshot metrics change because the requested dummy records changed; calculation formulas remain shared and consistent.
-- Risk/issue gross financial impact uses `lossUsd`; expected financial impact remains probability × gross loss for non-closed threats.
-- Coworker uses the complete current-snapshot portfolio because its filter bar is hidden. Portfolio selections remain intact when returning to another tab.
-- Responses appear only after Ask Coworker. Example prompts only populate the textarea. Guided, fallback and local model modes stay visibly distinct.
-- Future quarter ends remain explicitly simulated, despite removing the former chart footer.
+Application/API remains **8765**; LM Studio remains **http://127.0.0.1:1234/v1**. Requests remain same-origin. Model tests use controlled responses; real Qwen inference must be checked on the owner's machine using the existing README instructions before claiming successful model execution for a particular environment.
 
-Run `npm run build`, `npm run test:python` and `npm run test:ui` on the target checkout before merging, particularly if it contains edits newer than the supplied ZIP. Publish through the retained single Pages workflow after main passes validation.
+No remote commit, push, pull request, merge or deployment was performed. Run the existing build/Python/browser checks on the target checkout, then publish through the retained Pages workflow after main passes validation.

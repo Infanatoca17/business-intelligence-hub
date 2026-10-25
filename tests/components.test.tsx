@@ -105,7 +105,7 @@ test.each([
   },
 );
 
-test("Eight views render meaningful data with no missing-data text", () => {
+test("Seven views render meaningful data with no missing-data text", () => {
   const app = render(<App />);
   for (const view of [
     "Overview",
@@ -115,7 +115,6 @@ test("Eight views render meaningful data with no missing-data text", () => {
     "Financials",
     "Funding Pipeline",
     "Risks",
-    "Issues",
   ]) {
     navigate(view);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe(
@@ -133,7 +132,7 @@ test("Eight views render meaningful data with no missing-data text", () => {
 test("Global scope persists across navigation and resets correctly", () => {
   render(<App />);
   chooseFilter('Program', 'Health');
-  expect(screen.getByText("12 projects in scope")).toBeTruthy();
+  expect(screen.getByText("12 total initiatives in scope")).toBeTruthy();
   navigate("Projects");
   const table = screen.getByRole("table", { name: "Project directory" });
   expect(table.textContent).toContain("Health");
@@ -142,7 +141,7 @@ test("Global scope persists across navigation and resets correctly", () => {
     "Health",
   );
   fireEvent.click(screen.getByRole("button", { name: /Reset filters/ }));
-  expect(screen.getByText("48 projects in scope")).toBeTruthy();
+  expect(screen.getByText("Total projects", { selector: ".kpi-label" }).closest("button")!.querySelector("strong")!.textContent).toBe("48");
 });
 test("Table sorting, pagination and project drill-down use the displayed rows", async () => {
   render(<App />);

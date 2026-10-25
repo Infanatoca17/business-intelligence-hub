@@ -1530,3 +1530,12 @@ dialog.wide-modal {
   .reset { flex: 1 1 100%; }
   .kpi-grid:not(.overview-kpis):not(.financial-kpis) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+/* Center the full filter group within its rounded frame, on every tab. */
+.filters {
+  justify-content: center;
+  align-items: flex-end;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+}

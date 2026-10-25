@@ -684,7 +684,7 @@ function readRoute() {
   const q = new URLSearchParams(window.location.search);
   return {
     view:
-      (q.get("view") === "risk-scenarios" ? "Risks" : views.find(
+      (["risk-scenarios", "issues"].includes(q.get("view") || "") ? "Risks" : views.find(
         (v) => v.toLowerCase().replaceAll(" ", "-") === q.get("view") && (OPTIONAL_WORKSPACES_ENABLED || !OPTIONAL_VIEWS.includes(v)),
       )) || "Overview",
     deliverableCut: quarterCuts(bundle.deliverables).some(c => c.date === q.get("deliverable-cut")) ? q.get("deliverable-cut")! : "",
@@ -711,6 +711,13 @@ export function App() {
   const scopedBundle = prepared.data as typeof sourceBundle;
   const bundle = scopedBundle;
   const [view, setView] = useState<View>(initial.view);
+  const reviewDeliveryScroll = useRef(false);
+  useLayoutEffect(() => {
+    if (view === "Projects" && reviewDeliveryScroll.current) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      reviewDeliveryScroll.current = false;
+    }
+  }, [view]);
   const [deliverableCut, setDeliverableCut] = useState(initial.deliverableCut);
   const workspaceView = view;
   const [program, setProgram] = useMultiFilter(initial.program);
@@ -761,7 +768,7 @@ export function App() {
     return () => window.removeEventListener("popstate", back);
   }, []);
   const navigate = (v: View) => {
-    setView(v === "Risk Scenarios" ? "Risks" : !OPTIONAL_WORKSPACES_ENABLED && OPTIONAL_VIEWS.includes(v) ? "Overview" : v);
+    setView(v === "Risk Scenarios" || v === "Issues" ? "Risks" : !OPTIONAL_WORKSPACES_ENABLED && OPTIONAL_VIEWS.includes(v) ? "Overview" : v);
     setDetailFilter("All");
     setSeverityFilter("All");
     setCategoryFilter("All");
@@ -1070,7 +1077,7 @@ export function App() {
           </button>
         ))}
       </nav>
-      <main id="main-content">
+      <main id="main-content" className={view === "Coworker" ? "coworker-page" : undefined}>
         <div className="page-heading">
           <div>
             <div className="eyebrow">
@@ -1140,9 +1147,6 @@ export function App() {
             ↺ Reset filters
           </button>
 
-          <span className="scope-count">
-            {projects.length} projects in scope
-          </span>
         </div>
         {activeFilters.length > 0 && <div className="active-filters" aria-label="Active filters"><strong>{activeFilters.length} active {activeFilters.length === 1 ? 'filter' : 'filters'}</strong>{activeFilters.map(f => <button key={f.key} onClick={f.remove} aria-label={`Remove ${f.label}`}>{f.label}<span aria-hidden="true">×</span></button>)}</div>}</>}
         <CoworkerWorkspace view={workspaceView} data={view === "Coworker" ? prepared.data : { ...prepared.data, projects, ...Object.fromEntries(["deliverables", "risks", "plans", "staff", "financials", "funding", "observations"].map(k => [k, prepared.data[k].filter((r: { projectId: string }) => ids.has(r.projectId))])), qualityFindings: prepared.findings.filter((f: { projectId: string }) => ids.has(f.projectId) || !sourceBundle.projects.some(p => p.id === f.projectId)) }} filters={view === "Coworker" ? {} : { program, office, status, project: scopeProject }} sample={sample} setSample={setSample} navigate={navigate} openProject={openProject} />
@@ -1177,8 +1181,8 @@ export function App() {
                 detail={`${metrics.riskCount} risks · ${metrics.issueCount} issues`}
                 onClick={() => navigate("Risks")}
               />
-              <Kpi label="Portfolio exposure index" value={`${metrics.exposure} / 100`} detail="Mean of project exposure indices" onClick={() => navigate("Risk Scenarios")} />
-              <Kpi label="Expected financial consequences" value={money(metrics.expectedLoss)} detail="Baseline dummy probabilities · USD" onClick={() => navigate("Risk Scenarios")} />
+              <Kpi label="Portfolio exposure index" value={`${metrics.exposure} / 100`} detail="Mean of Project Exposure to Threats" onClick={() => navigate("Risk Scenarios")} />
+              <Kpi label="Risk financial impact" value={money(metrics.expectedLoss)} detail="Based on current estimates · USD" onClick={() => navigate("Risk Scenarios")} />
             </div>
             <div className="section-title">
               <div>
@@ -1252,6 +1256,7 @@ export function App() {
               <button
                 className="button subtle"
                 onClick={() => {
+                  reviewDeliveryScroll.current = true;
                   navigate("Projects");
                   setDetailFilter("Behind schedule");
                 }}

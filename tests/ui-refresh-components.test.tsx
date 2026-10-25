@@ -19,7 +19,7 @@ afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllGlobals();});
 const nav=(name:string)=>fireEvent.click(within(screen.getByRole('navigation')).getByRole('button',{name,exact:true}));
 test('Navigation is compact, optional routes are hidden, and Coworker has a dedicated header entry',()=>{
   render(<App/>);
-  expect(within(screen.getByRole('navigation')).getAllByRole('button').map(b=>b.textContent?.trim())).toEqual(['Overview','Projects','Deliverables','Staff','Financials','Funding Pipeline','Risks','Issues']);
+  expect(within(screen.getByRole('navigation')).getAllByRole('button').map(b=>b.textContent?.trim())).toEqual(['Overview','Projects','Deliverables','Staff','Financials','Funding Pipeline','Risks']);
   fireEvent.click(screen.getByRole('button',{name:'Open Coworker'}));
   expect(screen.getByRole('heading',{name:'Coworker',level:1})).toBeTruthy();
   expect(screen.queryByText('Data checks passed; human review remains')).toBeNull();
@@ -38,12 +38,12 @@ test('Global filters have the requested order and office labels, including compa
   expect(within(filters as HTMLElement).getAllByRole('combobox').map(s=>s.getAttribute('aria-label'))).toEqual(['Program','Project','Leading office','Project status']);
   fireEvent.click(screen.getByLabelText('Leading office')); expect(screen.getAllByRole('option').map(o=>o.textContent?.replace('✓',''))).toEqual(['All offices','Americas','Europe','Africa','South Asia','East Asia','Oceania']);
 });
-test('Risks and Issues show only the register, including compatible old scenario URLs',()=>{
+test('Risks shows its register and the removed Issues route remains compatible',()=>{
   window.history.replaceState(null,'','?view=risk-scenarios');render(<App/>);
   expect(screen.getByRole('table',{name:'Risks register'})).toBeTruthy();
   expect(screen.queryByRole('button',{name:'Risk scenarios',exact:true})).toBeNull();
   expect(screen.queryByRole('slider',{name:'Funding reduction'})).toBeNull();
-  nav('Issues');expect(screen.getByLabelText('Issues status')).toBeTruthy();
+  cleanup(); window.history.replaceState(null,'','?view=issues'); render(<App/>); expect(screen.getByRole('heading',{name:'Risks',level:1})).toBeTruthy(); expect(within(screen.getByRole('navigation')).queryByRole('button',{name:'Issues',exact:true})).toBeNull();
 });
 test('Quarter labels and ribbon keyboard selection scope the register, KPIs and typed exports to the same date',()=>{
   render(<App/>);nav('Deliverables');
@@ -153,16 +153,16 @@ test('Multiple programs and offices combine, persist in the URL, remove individu
   fireEvent.click(screen.getByRole('button',{name:'Done',exact:true}));
   chooseFilter('Leading office','Americas'); chooseFilter('Project status','Active');
   const expected=data.projects.filter(p=>['Health','Education'].includes(p.program)&&p.office==='Americas'&&p.status==='Active');
-  expect(screen.getByText(`${expected.length} projects in scope`)).toBeTruthy();
+  expect(screen.getByText('Total projects', { selector: '.kpi-label' }).closest('button')!.querySelector('strong')!.textContent).toBe(String(expected.length));
   expect(new URL(window.location.href).searchParams.getAll('program')).toEqual(['Health','Education']);
   fireEvent.click(screen.getByRole('button',{name:'Remove Program: Health'}));
-  expect(screen.getByText('2 projects in scope')).toBeTruthy();
+  expect(screen.getByText('Total projects', { selector: '.kpi-label' }).closest('button')!.querySelector('strong')!.textContent).toBe('2');
   fireEvent.click(screen.getByRole('button',{name:/Reset filters/}));
-  expect(screen.queryByLabelText('Active filters')).toBeNull();expect(screen.getByText('48 projects in scope')).toBeTruthy();
+  expect(screen.queryByLabelText('Active filters')).toBeNull();expect(screen.getByText('Total projects', { selector: '.kpi-label' }).closest('button')!.querySelector('strong')!.textContent).toBe('48');
 });
 test('Requested program and status charts are pies and the simplified columns are absent',()=>{
   render(<App/>);
-  for(const [view,title] of [['Deliverables','Deliverables by program'],['Staff','Staff by Program'],['Financials','Budget by program'],['Funding Pipeline','Requested amount by program'],['Risks','Risks by status'],['Issues','Issues by status']]){
+  for(const [view,title] of [['Deliverables','Deliverables by program'],['Staff','Staff by Program'],['Financials','Budget by program'],['Funding Pipeline','Requested amount by program'],['Risks','Risks by status']]){
     nav(view);expect(screen.getByRole('img',{name:title}).closest('.pie-panel')).toBeTruthy();
   }
   nav('Projects');const projects=screen.getByRole('table',{name:'Project directory'});

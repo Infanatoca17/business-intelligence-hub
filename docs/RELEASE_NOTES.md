@@ -1,5 +1,14 @@
 # Atlas Business Intelligence Hub — v1.2.0 UI refresh
 
+## UI polish — 25 October 2026
+
+- Centered filter controls with equal frame insets; removed the scope-count label.
+- Updated Overview exposure/risk-impact labels without changing their calculations.
+- Review delivery keeps selected scope, applies Behind schedule and opens Projects at the top.
+- Removed Coworker's sample/export toolbar and model-inference note; tightened heading, card and prompt spacing. Cards and example prompts fit the initial 1366 × 768 and 1280 × 720 desktop views at 100% zoom.
+- Removed Issues from navigation; legacy Issues URLs resolve to Risks. Issue records, Project 360 and shared calculations remain intact.
+- Dataset, engines, local service, ports, dependencies and Pages configuration unchanged from the 23 October update.
+
 ## UI update — 23 October 2026
 
 - Dummy-data terminology throughout UI, documentation, generated data and exports.

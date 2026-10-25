@@ -6,7 +6,7 @@ import { chooseFilter } from './filter-helpers';
 const data = JSON.parse(readFileSync(new URL('../../src/data/atlas-bundle.json', import.meta.url), 'utf8'));
 test('Desktop rounded cards, integrated charts and moved filters match the requested layout', async ({page}) => {
   await page.goto('./');
-  const nav = page.getByRole('navigation'); await expect(nav.getByRole('button')).toHaveCount(8);
+  const nav = page.getByRole('navigation'); await expect(nav.getByRole('button')).toHaveCount(7);
   const bounds = await nav.getByRole('button').evaluateAll(nodes => nodes.map(n => { const r=n.getBoundingClientRect();return {left:r.left,right:r.right}; }));
   expect(Math.abs((bounds[0].left+bounds.at(-1)!.right)/2 - 720)).toBeLessThan(3);
   expect(new Set(await page.locator('.overview-kpis .kpi').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().top))).size).toBe(1);
@@ -59,7 +59,7 @@ test('Multiselect combines options, survives reload and exports exactly its inte
   const download=page.waitForEvent('download');await page.getByRole('button',{name:'Export current view',exact:true}).click();
   const zip=unzipSync(readFileSync((await (await download).path())!));expect((strFromU8(zip['xl/worksheets/sheet1.xml']).match(/<row\b/g)||[])).toHaveLength(remaining.length+1);
   await expect(page.locator('.reset')).toHaveClass(/reset-active/); await page.locator('.reset').click();
-  await expect(page.getByLabel('Active filters')).toHaveCount(0); await expect(page.getByText('48 projects in scope')).toBeVisible();
+  await expect(page.getByLabel('Active filters')).toHaveCount(0); await expect(page.locator('.kpi').filter({has:page.locator('.kpi-label',{hasText:/^Total projects$/})}).locator('strong')).toHaveText('48');
 });
 test('Dropdowns support keyboard selection and stay inside a narrow viewport',async({page})=>{
   await page.setViewportSize({width:390,height:844});await page.goto('./?view=projects');

@@ -59,9 +59,9 @@ Open **[http://127.0.0.1:8765/business-intelligence-hub/](http://127.0.0.1:8765/
 3. Enable **Use local AI**.
 4. Click **Draft the quarterly brief**, then **Ask Coworker** if needed.
 5. Confirm **Local AI · LM Studio**, not Guided demo or Guided fallback.
-6. Compare all narrative numbers with the verified cards and XLSX. Citation IDs remain internal to response validation; the prompt area no longer displays citation pills.
+6. Compare all narrative numbers with the verified cards. Portfolio registers can still be exported from their own tabs. Citation IDs remain internal to response validation; the prompt area no longer displays citation pills.
 
-The filter bar, observation-count label and citation pills are hidden in Coworker. It uses the complete current-snapshot portfolio, while filters remain selected in other tabs. The example question is preloaded, but no answer appears until Ask Coworker. Connection checks, the AI toggle and request handling remain. This version does not expose the optional Executive Brief workspace. The local model drafts text and cannot replace calculated facts, repair source records or approve a report.
+The filter bar, sample toolbar, current-view export, observation-count label and citation pills are hidden in Coworker. It uses the complete current-snapshot portfolio, while filters remain selected in other tabs. The example question is preloaded, but no answer appears until Ask Coworker. Connection checks, the AI toggle and request handling remain. This version does not expose the optional Executive Brief workspace. The local model drafts text and cannot replace calculated facts, repair source records or approve a report.
 
 ## 5. Recheck scope and fallback
 

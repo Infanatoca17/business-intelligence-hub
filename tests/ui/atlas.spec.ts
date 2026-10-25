@@ -27,7 +27,6 @@ test("All views render with no page errors or external requests", async ({
     "Financials",
     "Funding Pipeline",
     "Risks",
-    "Issues",
   ]) {
     await page
       .getByRole("navigation")
@@ -49,7 +48,7 @@ test("Filters, chart drill-down, sorting and Project 360 preserve scope", async 
 }) => {
   await page.goto("./");
   await chooseFilter(page, "Program", "Health");
-  await expect(page.getByText("12 projects in scope")).toBeVisible();
+  await expect(page.getByText("12 total initiatives in scope")).toBeVisible();
   await page
     .getByRole("navigation")
     .getByRole("button", { name: "Projects", exact: true })
@@ -85,7 +84,7 @@ test("Filters, chart drill-down, sorting and Project 360 preserve scope", async 
   await page
     .getByRole("button", { name: "Reset filters", exact: false })
     .click();
-  await expect(page.getByText("48 projects in scope")).toBeVisible();
+  await expect(page.locator(".kpi").filter({has:page.locator(".kpi-label",{hasText:/^Total projects$/})}).locator("strong")).toHaveText("48");
 });
 test("Search, shareable project URLs, help, and empty filters are usable", async ({
   page,

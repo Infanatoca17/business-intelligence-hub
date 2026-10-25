@@ -14,7 +14,9 @@
 - Review is session-only and resets on scope, sample, scenario or narrative change.
 
 - Local app/API port is 8765; LM Studio base is http://127.0.0.1:1234/v1. Preserve these defaults and same-origin AI requests.
-- Main navigation contains eight portfolio views. Coworker opens from the header. Risks displays its register only; scenario implementation remains retained but hidden. Optional workspaces remain implemented but disabled by the portfolio UI flag.
+- Main navigation contains seven portfolio views. Issues records remain in Project 360 and calculations; legacy Issues routes resolve to Risks. Coworker opens from the header. Risks displays its register only; scenario implementation remains retained but hidden. Optional workspaces remain implemented but disabled by the portfolio UI flag.
 - Quarterly deliverable events are dummy. Future quarter ends must be labelled simulations. Historical completion anchors to the authoritative snapshot; current portfolio KPIs use the current dummy dataset. Chart download is PNG only.
 
 - UI update 23 October 2026: lifecycle status is Active/Closed; eight closed project examples; all filter dropdowns are multiselect. Coworker has no filter bar and uses the full portfolio; answers render only after Ask Coworker.
+
+- UI polish 25 October 2026: centered filters without scope-count labels; Review delivery scrolls the filtered Projects view to the top; compact Coworker omits its toolbar/export and fits KPI/input/example controls into standard desktop viewports.

@@ -1,5 +1,5 @@
 export const OPTIONAL_WORKSPACES_ENABLED = false;
-export const NAVIGATION_VIEWS = ['Overview', 'Projects', 'Deliverables', 'Staff', 'Financials', 'Funding Pipeline', 'Risks', 'Issues'];
+export const NAVIGATION_VIEWS = ['Overview', 'Projects', 'Deliverables', 'Staff', 'Financials', 'Funding Pipeline', 'Risks'];
 export const OPTIONAL_VIEWS = ['Data Quality', 'Executive Brief', 'Methodology'];
 export const DELIVERY_BANDS = ['Behind schedule', 'On track', 'Ahead of plan', 'Closed'];
 export const DELIVERY_BAND_COLORS = ['#b54c58', '#267567', '#4279b0', '#9baba3'];
