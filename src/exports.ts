@@ -9,7 +9,7 @@ import {
   replaceElement,
 } from "write-excel-file/utility";
 
-export const exportNote = `${bundle.meta.product} | ${bundle.meta.name} | Synthetic demonstration data | ${bundle.meta.asOf}`;
+export const exportNote = `${bundle.meta.product} | ${bundle.meta.name} | Dummy data | ${bundle.meta.asOf}`;
 function download(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");

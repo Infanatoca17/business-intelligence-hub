@@ -1,3 +1,4 @@
+import { chooseFilter } from './filter-helpers';
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { unzipSync, strFromU8 } from "fflate";
@@ -47,15 +48,13 @@ test("Filters, chart drill-down, sorting and Project 360 preserve scope", async 
   page,
 }) => {
   await page.goto("./");
-  await page.getByLabel("Program", { exact: true }).selectOption("Health");
+  await chooseFilter(page, "Program", "Health");
   await expect(page.getByText("12 projects in scope")).toBeVisible();
   await page
     .getByRole("navigation")
     .getByRole("button", { name: "Projects", exact: true })
     .click();
-  await page
-    .getByLabel("Schedule", { exact: true })
-    .selectOption("Behind schedule");
+  await chooseFilter(page, "Schedule", "Behind schedule");
   await expect(
     page.getByRole("table", { name: "Project directory" }).locator("tbody"),
   ).not.toContainText("Sustainability");
@@ -77,10 +76,10 @@ test("Filters, chart drill-down, sorting and Project 360 preserve scope", async 
   await page
     .getByRole("button", { name: "Close Project 360", exact: true })
     .click();
-  await expect(page.getByLabel("Program", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("Program", { exact: true })).toContainText(
     "Health",
   );
-  await expect(page.getByLabel("Schedule", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("Schedule", { exact: true })).toContainText(
     "Behind schedule",
   );
   await page
@@ -114,7 +113,7 @@ test("Search, shareable project URLs, help, and empty filters are usable", async
     .getByRole("navigation")
     .getByRole("button", { name: "Risks", exact: true })
     .click();
-  await page.getByLabel("Category", { exact: true }).selectOption("Delivery");
+  await chooseFilter(page, "Category", "Delivery");
   await expect(
     page.getByText(
       "No records match these filters. Clear a filter to explore the portfolio.",
@@ -122,11 +121,11 @@ test("Search, shareable project URLs, help, and empty filters are usable", async
   ).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/NaN|undefined/);
 });
-test("Workbook and chart exports contain Atlas branding and synthetic values", async ({
+test("Workbook and chart exports contain Atlas branding and dummy values", async ({
   page,
 }) => {
   await page.goto("./");
-  await page.getByLabel("Program", { exact: true }).selectOption("Education");
+  await chooseFilter(page, "Program", "Education");
   const workbookDownload = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Export current view", exact: true })

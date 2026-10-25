@@ -1,5 +1,5 @@
-// Reproducible fictional events. Future quarter ends are synthetic simulations.
-export const DELIVERY_STATUSES = ['Scheduled', 'In progress', 'Complete', 'Overdue'];
+// Reproducible fictional events. Future quarter ends are dummy simulations.
+export const DELIVERY_STATUSES = ['Active', 'Closed'];
 const day = 86400000;
 const add = (date, days) => new Date(Date.parse(date + 'T00:00:00Z') + days * day).toISOString().slice(0, 10);
 export function deliveryEvents(deliverable, project, snapshot, index) {
@@ -11,21 +11,18 @@ export function deliveryEvents(deliverable, project, snapshot, index) {
   const proposedStart = deliverable.completion === 0 ? add(snapshot, 1 + index % 14)
     : complete ? add(completionDate, -(28 + index % 20)) : add(snapshot, -(21 + Math.round(deliverable.completion * .6)));
   const startedDate = [createdDate, proposedStart].sort().at(-1);
-  return { createdDate, startedDate, completionDate, historyProvenance: 'Synthetic event timeline; future completion dates are simulated.' };
+  return { createdDate, startedDate, completionDate, historyProvenance: 'Dummy event timeline; future completion dates are simulated.' };
 }
 export function deliveryStatusAt(record, cutoff, snapshot) {
   if (cutoff < record.createdDate) return null;
   if (cutoff === snapshot) return record.status;
-  if (record.completionDate <= cutoff) return 'Complete';
-  if (record.dueDate < cutoff) return 'Overdue';
-  if (record.startedDate <= cutoff) return 'In progress';
-  return 'Scheduled';
+  return record.completionDate <= cutoff ? 'Closed' : 'Active';
 }
 export function deliveryCompletionAt(record, cutoff, snapshot) {
   if (cutoff === snapshot) return record.completion;
   if (cutoff >= record.completionDate) return 100;
   if (cutoff <= record.startedDate) return 0;
-  // Anchor the synthetic curve to the saved snapshot, so progress cannot jump
+  // Anchor the dummy curve to the saved snapshot, so progress cannot jump
   // backwards when moving across the snapshot date.
   const anchored = record.startedDate < snapshot && snapshot < record.completionDate;
   const from = anchored && cutoff > snapshot ? snapshot : record.startedDate;
@@ -53,7 +50,7 @@ export function deliveryRowsAt(records, cutoff, snapshot) {
   return records.flatMap(r => {
     const status = deliveryStatusAt(r, cutoff, snapshot);
     return status ? [{ ...r, status, completion: deliveryCompletionAt(r, cutoff, snapshot), cutoffDate: cutoff,
-      historyMode: cutoff > snapshot ? 'Synthetic simulation' : cutoff === snapshot ? 'Current snapshot' : 'Synthetic history' }] : [];
+      historyMode: cutoff > snapshot ? 'Dummy simulation' : cutoff === snapshot ? 'Current snapshot' : 'Dummy history' }] : [];
   });
 }
 export function quarterlyDelivery(records, snapshot) {

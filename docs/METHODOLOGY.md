@@ -8,11 +8,11 @@ The shared engines are `src/metrics.mjs` and `src/coworker-engine.mjs`. React, g
 
 `Expected project progress = clamp(100 × (snapshot − start) / (end − start), 0, 100)`
 
-UTC calendar dates and strictly positive project durations are used. Expected project progress is rounded to whole percentage points; actual project progress to one decimal. Portfolio progress is an equal-weight mean across projects in scope, including planned projects unless filtered out.
+UTC calendar dates and strictly positive project durations are used. Expected project progress is rounded to whole percentage points; actual project progress to one decimal. Portfolio progress is an equal-weight mean across projects in scope, including future-start Active projects unless filtered out.
 
-A gap below **−7 percentage points** is Behind schedule; above **+7** is Ahead of plan; both boundaries and the intervening range are On track. A deliverable is Complete at 100%; otherwise Overdue if its deadline precedes the snapshot, In progress if completion is positive, or Scheduled.
+A gap below **−7 percentage points** is Behind schedule; above **+7** is Ahead of plan; both boundaries and the intervening range are On track. A deliverable is Closed at 100% completion and Active otherwise. An Active deliverable is overdue when its deadline precedes the snapshot; this is a KPI measure rather than another lifecycle status.
 
-The generator creates 12 monthly observations per project, October 2025–September 2026. Historical completion and spending interpolate deterministically from planned elapsed time and the current synthetic records. September is a partial-month observation at the snapshot date, not a forecast month-end. Current observations reconcile with current deliverables and spending. Historical completion is derived from its six saved deliverable completion values. These records are synthetic histories, not collected reports or independently estimated trajectories.
+The generator creates 12 monthly observations per project, October 2025–September 2026. Historical completion and spending interpolate deterministically from planned elapsed time and the current dummy records. September is a partial-month observation at the snapshot date, not a forecast month-end. Current observations reconcile with current deliverables and spending. Historical completion is derived from its six saved deliverable completion values. These records are dummy histories, not collected reports or independently estimated trajectories.
 
 Monthly evidence supports coverage and historical inspection. Current dashboard progress and spending use deliverables and financial records; an invalid monthly observation is quarantined rather than substituted into current KPIs.
 
@@ -22,19 +22,23 @@ The baseline bundle did not contain creation/start/completion events. `src/deliv
 
 - Creation is the earlier of project start minus 28 days and snapshot minus 45 days. This allows planning deliverables to exist before a project starts.
 - Complete records receive a completion before/on the snapshot and their due date; other records receive a simulated completion 21–60 days after the later of due date and snapshot.
-- Synthetic start precedes completion and is never before creation. All zero-progress records start after the snapshot; some can already be Overdue because their due date has passed.
-- At a cutoff before creation, exclude the record. At the exact snapshot, use its saved current status/completion. Otherwise apply: completed by cutoff → Complete; deadline before cutoff → Overdue; started by cutoff → In progress; otherwise Scheduled. Due on the cutoff is not overdue.
+- Dummy start precedes completion and is never before creation. All zero-progress records start after the snapshot; some can already be overdue because their due date has passed.
+- At a cutoff before creation, exclude the record. At the exact snapshot, use its saved current status/completion. Otherwise apply: completed by cutoff → Closed; otherwise Active. Overdue counts Active records with a deadline before the cutoff. Due on the cutoff is not overdue.
 - Estimated completion interpolates between event dates and anchors to the saved snapshot percentage. It is bounded 0–100. The event model intentionally represents single start/completion dates rather than repeated reopenings.
 
 Cuts occur at UTC quarter ends: March 31, June 30, September 30 and December 31. The timeline spans the quarter containing first creation through the quarter containing last simulated completion. Thus partial first/final years have only the applicable quarters. Ribbons interpolate counts between the discrete cuts for display; filter values use the exact cutoff counts, not an interpolated point.
 
-Clicking a quarter includes all existing deliverables at that cut; clicking a ribbon selects its status at the nearest quarter. Keyboard/legend selection uses the selected cut or latest past quarter. Date/status filters drive the Deliverables KPIs, vertical charts, table and XLSX from the same rows. Other portfolio views and Coworker retain the fixed current snapshot; the ribbon does not retime project financial assumptions.
+Clicking a quarter selects Active deliverables existing at that cut; clicking a ribbon selects Active or Closed at the nearest quarter. Choosing both statuses or All statuses includes all existing records. Keyboard/legend selection uses the selected cut or latest past quarter. Date/status filters drive the Deliverables KPIs, status bars/program pie, table and XLSX from the same rows. Other portfolio views and Coworker retain the fixed current snapshot; the ribbon does not retime project financial assumptions.
 
-Any quarter end after **2026-09-22**, including Q3 2026 on September 30, is labelled **Synthetic simulation**. Earlier quarters are **Synthetic history**. Neither should be presented as reported operational results.
+Any quarter end after **2026-09-22**, including Q3 2026 on September 30, is labelled **Dummy simulation**. Earlier quarters are **Dummy history**. Neither should be presented as reported operational results.
 
 ## Budget by delivery status
 
-The Projects chart sums **approved budget (USD)** by program and schedule band, with Planned projects separated. Its segments reconcile to the visible project directory and its total approved budget. Clicking a segment selects the program and schedule (or Planned project status). This is a delivery attention/allocation view, not expected financial loss, spending or a risk provision.
+The Projects chart sums **approved budget (USD)** by program and schedule band, with Closed projects separated. Its segments reconcile to the visible project directory and its total approved budget. Clicking a segment selects the program and schedule (or Closed project status). This is a delivery attention/allocation view, not expected financial loss, spending or a risk provision.
+
+## Lifecycle and scope
+
+Projects, deliverables, threats, staff allocations and plans use Active/Closed status. Two projects per program are closed examples with ended timelines, all deliverables complete and all threats closed. Four future-start projects remain Active at zero progress. Progress, exposure and loss formulas are unchanged; the new dummy examples change the snapshot totals. Coworker uses the complete current-snapshot portfolio because it has no filter bar; other views combine OR within multiselect criteria and AND across criteria.
 
 ## Ordinal exposure and monetary consequences
 
@@ -42,7 +46,7 @@ The Projects chart sums **approved budget (USD)** by program and schedule band, 
 
 Impact and likelihood are integers 1–5. An occurred issue uses likelihood 5. Project exposure is the mean score of non-closed threats; no open threats gives 0. Portfolio exposure is the equal-weight project mean. Bands are Minor (0–20), Moderate (>20–40), Major (>40–70), Critical (>70–100). The chart scale is fixed at 0–100.
 
-| Likelihood level | Synthetic risk probability |
+| Likelihood level | Dummy risk probability |
 |---:|---:|
 | 1 | 10% |
 | 2 | 25% |
@@ -61,7 +65,7 @@ Exposure and expected consequences reference the same threats but measure differ
 
 ## Financial scenarios
 
-Budgets, spending, register forecasts and next-year budgets are synthetic USD values. Register forecast is a separate supplied demonstration field. Burn rate is `100 × spent / budget`, or 0 for an empty scope.
+Budgets, spending, register forecasts and next-year budgets are dummy USD values. Register forecast is a separate supplied demonstration field. Burn rate is `100 × spent / budget`, or 0 for an empty scope.
 
 | Parameter | Range / effect |
 |---|---|
@@ -89,7 +93,7 @@ Added delay is the equal-weight mean of each project's scenario delay minus base
 
 Each of 96 fictional people is allocated to one project. FTE sums assignments; weekly hours = FTE × 40. A real staffing system would distinguish people and multiple allocations.
 
-Funding requested amount includes all scoped opportunities unless the stage filter narrows it. Weighted pipeline = sum(requested × stage probability): Proposed 25%, Under review 50%, Negotiation 75%, Secured 100%. These funding-stage weights differ from the threat likelihood scale and are also synthetic.
+Funding requested amount includes all scoped opportunities unless the stage filter narrows it. Weighted pipeline = sum(requested × stage probability): Proposed 25%, Under review 50%, Negotiation 75%, Secured 100%. These funding-stage weights differ from the threat likelihood scale and are also dummy.
 
 ## Quality and review
 
@@ -102,7 +106,7 @@ Review requires a nonempty scope and narrative, zero critical findings, valid cu
 
 ## Scope, evidence and exports
 
-Program, office, project status and optional project ID select a set of project IDs. Related datasets and Coworker use that same set. View-specific filters narrow their table/chart/export further. Search covers the entire synthetic portfolio. Global filters, project scope, the Risks subview and the selected deliverable cutoff are encoded in URLs. A ribbon status selection is session state; reload retains the date but resets the status filter. Optional defect samples are disabled in the standard UI. Other table filters and review are not URL state.
+Program, office, project status and optional project ID select a set of project IDs. Related datasets and Coworker use that same set. View-specific filters narrow their table/chart/export further. Search covers the entire dummy portfolio. Global filters, project scope, the Risks subview and the selected deliverable cutoff are encoded in URLs. A ribbon status selection is session state; reload retains the date but resets the status filter. Optional defect samples are disabled in the standard UI. Other table filters and review are not URL state.
 
 Empty scopes show zero counts and explicit empty states. Null execution projections export as empty cells, not zeros. Scenario XLSX/CSV rows include the snapshot, currency, sample, scenario percentages and dummy-data notice. Numeric XLSX/CSV cells preserve calculation precision; UI and Markdown round money to dollars, progress/exposure to one decimal. Compact dashboard formatting can differ from Coworker formatting without changing the underlying value.
 

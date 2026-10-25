@@ -78,4 +78,4 @@ The base-path correction was separate: Vite project sites need the repository na
 
 References: [React useLayoutEffect](https://react.dev/reference/react/useLayoutEffect), [Vite GitHub Pages deployment](https://vite.dev/guide/static-deploy.html#github-pages).
 
-> This is an independent portfolio implementation built with synthetic data. It does not contain or reproduce confidential employer code, systems, or datasets.
+> This is an independent portfolio implementation built with dummy data. It does not contain or reproduce confidential employer code, systems, or datasets.

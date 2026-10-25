@@ -368,3 +368,32 @@ export function Bars({ title, subtitle, entries, onSelect, currency = false, exp
       {!entries.length && <text x="315" y="145" textAnchor="middle" fill="#677a72">No records match these filters.</text>}
     </svg></section>;
 }
+
+// SVG paths, values and legend share one source so PNGs and interactive slices agree.
+export function Pie({ title, subtitle, entries, onSelect, currency = false, exportContext }: {
+  title: string; subtitle?: string; entries: { label: string; value: number; color: string }[];
+  onSelect?: (label: string) => void; currency?: boolean; exportContext?: string;
+}) {
+  const id = `pie-${useId().replaceAll(':', '')}`;
+  const total = entries.reduce((n, e) => n + e.value, 0);
+  const amount = (n: number) => currency ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n) : n.toLocaleString('en-US');
+  let angle = -Math.PI / 2;
+  const segments = entries.filter(e => e.value > 0).map(entry => {
+    const start = angle, sweep = entry.value / total * Math.PI * 2; angle += sweep;
+    const point = (a: number) => `${182 + 112 * Math.cos(a)},${151 + 112 * Math.sin(a)}`;
+    return { ...entry, path: sweep > Math.PI * 2 - 1e-8
+      ? 'M182,39 A112,112 0 1,1 182,263 A112,112 0 1,1 182,39 Z'
+      : `M182,151 L${point(start)} A112,112 0 ${sweep > Math.PI ? 1 : 0},1 ${point(angle)} Z`,
+      percent: entry.value / total * 100 };
+  });
+  return <section className="panel chart-panel pie-panel"><div className="panel-heading"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><ChartTools id={id} title={title} context={exportContext} /></div>
+    <svg id={id} viewBox="0 0 590 340" role="img" aria-label={title}>
+      {segments.map(e => <path key={e.label} d={e.path} fill={e.color} stroke="#fffdf8" strokeWidth="2" role={onSelect ? 'button' : undefined} tabIndex={onSelect ? 0 : undefined} aria-label={`Filter ${e.label}`} onClick={() => onSelect?.(e.label)} onKeyDown={event => { if (onSelect && ['Enter', ' '].includes(event.key)) { event.preventDefault(); onSelect(e.label); } }}><title>{e.label}: {amount(e.value)} ({e.percent.toFixed(1)}%)</title></path>)}
+      {!total && <text x="182" y="151" textAnchor="middle" fontSize="14" fill="#536a61">No data in this scope</text>}
+      {entries.map((e, i) => <g key={e.label} transform={`translate(330 ${68 + i * 51})`} role={onSelect && e.value ? 'button' : undefined} tabIndex={onSelect && e.value ? 0 : undefined} aria-label={`Select ${e.label}: ${amount(e.value)}`} onClick={() => e.value && onSelect?.(e.label)} onKeyDown={event => { if (e.value && onSelect && ['Enter', ' '].includes(event.key)) { event.preventDefault(); onSelect(e.label); } }}>
+        <circle cx="0" cy="0" r="5" fill={e.color}/><text x="14" y="4" fontSize="13" fill="#31544c">{e.label}</text><text x="14" y="23" fontSize="12" fill="#536a61">{amount(e.value)} · {total ? (e.value / total * 100).toFixed(1) : '0'}%</text>
+      </g>)}
+      <text x="182" y="308" textAnchor="middle" fontSize="13" fill="#31544c">Total: {amount(total)}</text>
+    </svg>
+  </section>;
+}

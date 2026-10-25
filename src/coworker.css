@@ -5,3 +5,9 @@
 .cw-inline-citations button { font-size: 10px; padding: 4px 7px; }
 .cw-connection { align-self: start; }
 @media (max-width: 1050px) { .cw-assistant-layout { grid-template-columns: 1fr; } }
+.cw-facts > div, .cw-panel { border-radius: 24px; }
+.cw-facts > div { min-width: 0; }
+.cw-facts span { line-height: 1.45; }
+.cw-prompts { margin-top: 16px; }
+.cw-prompts button, .cw-question, #cw-question { border-radius: 16px; }
+.cw-demo-note { margin-top: 22px; }

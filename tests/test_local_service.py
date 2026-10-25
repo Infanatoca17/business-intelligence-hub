@@ -14,7 +14,7 @@ from atlas_coworker.server import answer_request, validate_request, Handler, BAS
 
 class ServiceTests(unittest.TestCase):
     def setUp(self):
-        self.env = patch.dict(os.environ, {"LM_STUDIO_MODEL": "synthetic-test-model", "LM_STUDIO_BASE_URL": "http://127.0.0.1:1234/v1", "LM_STUDIO_TIMEOUT": "120", "LM_STUDIO_API_KEY": ""})
+        self.env = patch.dict(os.environ, {"LM_STUDIO_MODEL": "dummy-test-model", "LM_STUDIO_BASE_URL": "http://127.0.0.1:1234/v1", "LM_STUDIO_TIMEOUT": "120", "LM_STUDIO_API_KEY": ""})
         self.env.start()
     def tearDown(self):
         self.env.stop()
@@ -29,6 +29,14 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(answer["facts"]["projects"], 12)
         self.assertEqual(answer["scenario"]["parameters"]["fundingCut"], .2)
         self.assertTrue(all(r["program"] == "Health" for r in answer["scenario"]["rows"]))
+    def test_multi_scope_and_closed_status_reach_the_shared_engine(self):
+        answer = answer_request({"question": "Report", "filters": {"program": ["Health", "Education"], "status": ["Closed"]}})
+        self.assertEqual(answer["facts"]["projects"], 4)
+        self.assertEqual(answer["facts"]["actual"], 100)
+        self.assertEqual(answer["facts"]["expectedLoss"], 0)
+        for invalid in [["Unknown"], [1], {"value": "Health"}]:
+            with self.assertRaises(ValueError):
+                validate_request({"question": "Report", "filters": {"program": invalid}})
     def test_lm_studio_contract_and_verified_numbers_are_preserved(self):
         baseline = guided({"question": "Report"})
         def transport(payload):
@@ -36,7 +44,7 @@ class ServiceTests(unittest.TestCase):
             self.assertTrue(payload["response_format"]["json_schema"]["strict"])
             self.assertEqual(payload["temperature"], 0)
             self.assertFalse(payload["stream"])
-            self.assertEqual(payload["model"], "synthetic-test-model")
+            self.assertEqual(payload["model"], "dummy-test-model")
             return {"choices": [{"message": {"content": json.dumps({"summary": "A local narrative.", "actions": ["Review delivery."], "source_ids": ["CALC-PORTFOLIO"]})}}]}
         result = local_answer(baseline, "Report", transport)
         self.assertEqual(result["mode"], "local_ai")
@@ -78,7 +86,7 @@ class ServiceTests(unittest.TestCase):
         class ModelHandler(BaseHTTPRequestHandler):
             def log_message(self, *args): pass
             def do_GET(self):
-                self.send_response(200); self.end_headers(); self.wfile.write(b'{"data":[{"id":"synthetic-test-model"}]}')
+                self.send_response(200); self.end_headers(); self.wfile.write(b'{"data":[{"id":"dummy-test-model"}]}')
             def do_POST(self):
                 requests.append((self.path, self.headers.get('Authorization'), json.loads(self.rfile.read(int(self.headers['Content-Length'])))))
                 value = {"choices": [{"message": {"content": '{"summary":"Mock HTTP narrative","actions":[],"source_ids":["CALC-PORTFOLIO"]}'}}]}
@@ -86,27 +94,27 @@ class ServiceTests(unittest.TestCase):
         with ThreadingHTTPServer(('127.0.0.1', 0), ModelHandler) as server:
             thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
             try:
-                with patch.dict(os.environ, {"LM_STUDIO_BASE_URL": f"http://127.0.0.1:{server.server_port}/v1", "LM_STUDIO_API_KEY": "synthetic-token"}):
+                with patch.dict(os.environ, {"LM_STUDIO_BASE_URL": f"http://127.0.0.1:{server.server_port}/v1", "LM_STUDIO_API_KEY": "dummy-token"}):
                     status = model_status()
                     self.assertTrue(status['reachable']); self.assertTrue(status['model_available'])
-                    self.assertNotIn('synthetic-token', json.dumps(status))
+                    self.assertNotIn('dummy-token', json.dumps(status))
                     result = answer_request({"question": "Report", "mode": "local_ai"})
                     self.assertEqual(result['mode'], 'local_ai')
             finally:
                 server.shutdown(); thread.join()
         self.assertEqual(requests[0][0], '/v1/chat/completions')
-        self.assertEqual(requests[0][1], 'Bearer synthetic-token')
+        self.assertEqual(requests[0][1], 'Bearer dummy-token')
         self.assertEqual(requests[0][2]['response_format']['json_schema']['name'], 'atlas_coworker_answer')
     def test_app_http_contract_subpath_and_cross_origin_boundary(self):
         class QuietHandler(Handler):
             def log_message(self, *args): pass
         with tempfile.TemporaryDirectory() as folder:
-            Path(folder, 'index.html').write_text('Synthetic app')
+            Path(folder, 'index.html').write_text('Dummy app')
             with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=folder)) as server:
                 thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
                 base = f'http://127.0.0.1:{server.server_port}'
                 try:
-                    with urlopen(base + BASE_PATH) as response: self.assertEqual(response.read(), b'Synthetic app')
+                    with urlopen(base + BASE_PATH) as response: self.assertEqual(response.read(), b'Dummy app')
                     request = Request(base + BASE_PATH + 'api/assistant', data=b'{"question":"Report"}', headers={'Content-Type': 'application/json'})
                     with urlopen(request) as response: self.assertEqual(json.load(response)['facts']['projects'], 48)
                     external = Request(base + BASE_PATH + 'api/assistant', data=b'{"question":"Report"}', headers={'Origin': 'https://example.com'})

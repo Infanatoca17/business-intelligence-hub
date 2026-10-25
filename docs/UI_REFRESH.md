@@ -17,7 +17,7 @@ Official product: **Atlas Business Intelligence Hub**. Fictional organization: *
 | Bar charts | Shared chart renderer uses vertical bars, axes, wrapped labels and keyboard/click drill-down |
 | Overview | Six desktop cards; pale straw middle exposure background |
 | Projects | Equal-width progress tracker and approved Budget by delivery status chart; stacked approved allocations by program/schedule, clickable |
-| Deliverables | Quarterly status ribbon with deterministic synthetic event dates and date/status filters, matching KPIs/tables/exports, explicit simulations |
+| Deliverables | Quarterly status ribbon with deterministic dummy event dates and date/status filters, matching KPIs/tables/exports, explicit simulations |
 | Financials | Five desktop cards |
 | Coworker | Readiness strip and separate Sources panel removed; inline citations, local connection, toggle and AI handling retained |
 
@@ -33,7 +33,7 @@ The Python service and AI adapter are byte-identical to v1.1.1. Neither the 8765
 
 ## Data and reproducibility
 
-The original 48 projects and 288 current deliverable records remain the base. New event dates describe a synthetic history and future completion scenario. Original current statuses/completions, budgets, spending, forecast, probabilities, loss/delay formulas and monthly observations are preserved. Office business labels lose their Hub suffix; organization/product identities retain their correct names.
+The original 48 projects and 288 current deliverable records remain the base. New event dates describe a dummy history and future completion scenario. Original current statuses/completions, budgets, spending, forecast, probabilities, loss/delay formulas and monthly observations are preserved. Office business labels lose their Hub suffix; organization/product identities retain their correct names.
 
 See METHODOLOGY.md for cutoff rules and WALKTHROUGH.md for current and historical reference figures. `npm run data:generate` reproduces the saved bundle. Version is 1.2.0; no dependency was added.
 
