@@ -15,9 +15,9 @@ To solve this, I created *Atlas*, an integrated hub that unifies insights across
 
 Atlas integrates *Coworker*, an AI Agent that answers your questions, drafts deliverables and creates financial scenarios. For this demo, *Coworker* uses verified calculations and templates. However, *Coworker* is enabled to run any local AI model (see [Run Coworker with local AI (LM Studio)](#run-coworker-with-local-ai-lm-studio)).
 
-## Hand-on Atlas in 90s
+## Explore Atlas in 90s
 
-Begin with this *Atlas* walkthrough:
+Begin here with this 90s *Atlas* walkthrough:
 
 [![Watch the Atlas 90-second walkthrough](https://img.youtube.com/vi/oXHX2xGsrbo/hqdefault.jpg)](https://www.youtube.com/watch?v=oXHX2xGsrbo)
 
