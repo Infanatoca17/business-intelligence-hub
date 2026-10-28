@@ -15,9 +15,9 @@ To solve this, I created *Atlas*, an integrated hub that unifies insights across
 
 Atlas integrates *Coworker*, an AI Agent that answers your questions, drafts deliverables and creates financial scenarios. For this demo, *Coworker* uses verified calculations and templates. However, *Coworker* is enabled to run any local AI model (see [Run Coworker with local AI (LM Studio)](#run-coworker-with-local-ai-lm-studio)).
 
-## Explore Atlas in 90s
+## Begin here!!!
 
-Begin here with this 90s *Atlas* walkthrough:
+Explore *Atlas* with this 90s walkthrough:
 
 [![Watch the Atlas 90-second walkthrough](https://img.youtube.com/vi/oXHX2xGsrbo/hqdefault.jpg)](https://www.youtube.com/watch?v=oXHX2xGsrbo)
 
@@ -44,12 +44,6 @@ Or go to the demo and explore Atlas on your own:
 | Project 360 | Profile, deliverables, response plan, risks/issues, staffing, financials, funding and copyable URL |
 | Search / help | Cross-portfolio search and methodology/data help |
 
-All search-criteria dropdowns support multiple selections: **OR within a criterion, AND across criteria**. Selected controls are highlighted; removable chips identify every active filter. Reset filters clears the full portfolio selection. Scope and view-specific filters survive URL reloads. Chart clicks select one category. The filter group is centered inside its rounded frame; the former project-count label is removed. Review delivery opens the filtered Projects view at the top of the page.
-
-Status is **Active** or **Closed** for projects, deliverables, threats, staff allocations and response plans. Closed deliverables are 100% complete; an active deliverable is overdue when its due date precedes the cutoff. Schedule bands, opportunity stages and management-action workflow remain distinct from lifecycle status.
-
-Charts export as **PNG**. Portfolio tables and current views export as **XLSX**, retaining numeric cells, white headers, worksheet filters and the dummy-data notice. The optional quality, scenario, brief and methodology components/calculations remain in source but are hidden from standard navigation. Risks displays its register only. The Issues tab is removed; its records remain in Project 360 and shared calculations. Legacy Issues URLs open Risks.
-
 ## Data and methodology
 
 - 48 projects (40 Active, 8 Closed; two closed examples per program), 288 deliverables, and 48 response plans.
@@ -59,33 +53,7 @@ Charts export as **PNG**. Portfolio tables and current views export as **XLSX**,
 - 576 monthly observations: 12 per project, October 2025–September 2026.
 - 6 dummy methodology/evidence documents, plus inspectable project and reporting records.
 
-Four future-start projects remain Active with zero progress/spending and no execution-cost projection. Eight closed projects have 100% completion, ended timelines, closed deliverables and closed threats. These dummy examples deliberately change the snapshot metrics; IDs, record counts and formulas are preserved.
-
-Current progress is the mean completion of each project's deliverables. **On track** uses a **±7 percentage-point** tolerance. The ordinal exposure index and expected financial loss use the same non-closed threats but retain separate units. Likelihood levels 1–5 map to **10%, 25%, 45%, 65%, 85%** probabilities; occurred issues use **100%**.
-
 See [METHODOLOGY.md](docs/METHODOLOGY.md), [DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md), and [RELEASE_NOTES.md](docs/RELEASE_NOTES.md).
-
-## Run, validate and update
-
-To run locally, use Node 22.14+ in major 22 or Node 24, and Python 3.10+.
-
-```powershell
-npm.cmd ci
-npm.cmd run build
-npm.cmd run test:python
-npx.cmd playwright install chromium
-npm.cmd run test:ui
-npm.cmd run preview
-```
-
-Preview: [127.0.0.1:4173/business-intelligence-hub](http://127.0.0.1:4173/business-intelligence-hub/). The guided demo does not require Python or a model.
-
-- Existing repository/branch: [UPDATE_EXISTING_REPOSITORY.md](docs/UPDATE_EXISTING_REPOSITORY.md).
-- Local AI installation, model choice, exact model ID and real inference check: [LM_STUDIO_SETUP.md](docs/LM_STUDIO_SETUP.md).
-- Manual checks and reference figures: [WALKTHROUGH.md](docs/WALKTHROUGH.md).
-- Executed tests and practical limitations: [VALIDATION.md](docs/VALIDATION.md).
-
-There is one workflow, `.github/workflows/pages.yml`. It validates the integration branch, pull requests and main. It publishes the frontend to GitHub Pages only after main passes validation. Python and LM Studio run on your local computer, not on GitHub Pages.
 
 ## Run Coworker with local AI (LM Studio)
 
