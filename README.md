@@ -21,7 +21,7 @@ Explore *Atlas* with this 90s walkthrough:
 
 [![Watch the Atlas 90-second walkthrough](https://img.youtube.com/vi/oXHX2xGsrbo/hqdefault.jpg)](https://www.youtube.com/watch?v=oXHX2xGsrbo)
 
-Or go to the demo and explore Atlas on your own:
+Or go to the demo and explore *Atlas* on your own:
 1. Start on Overview and select a Program filter.
 2. Select **Review delivery** to inspect projects behind schedule.
 3. Open a project from a table or chart to explore Project 360.
